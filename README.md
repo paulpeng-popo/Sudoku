@@ -1,23 +1,48 @@
-# Sudoku
+# Sudoku Web Solver
 
-- It's a Sudoku-problems solver
-- Note: The program **only works on Linux/Unix**
-- Ensure that you have python3 on your computer for playing this program
+![Sudoku Solver](demo/sudoku_solver.png)
 
-File directions:
+A browser-based Sudoku solver built with **Flask** and powered by a recursive backtracking algorithm.  
+Users can enter a Sudoku puzzle in the web interface, submit it, and receive a solved grid along with the execution time.
 
-- sudoku.py
-  is the main program
-- sudoset.py
-  is utility function set that used by sudoku
+---
 
-Usage:
+## Overview
 
-    python3 sudoku.py
+This project provides:
 
-Execution:
+- A clean web interface for entering Sudoku puzzles
+- A Python backtracking solver (`SudokuSolver`) that processes the board
+- Automatic detection of invalid or unsolvable puzzles
+- Execution time measurement
+- Visual display of the completed solution
 
-    1. Arrow buttons can move the cursor
-    2. Enter number 1 ~ 9 for setting a question
-    3. Undo the number by pressing blank space
-    4. Finally, press 'Enter' to run solver
+The backend uses the logic from `sudoku.py`, integrated into a Flask web application.
+
+---
+
+## Installation
+
+Require **Python 3.10** or higher.
+
+Install required dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Running the Application
+
+Start the Flask server:
+
+```bash
+python app.py
+```
+
+Access the web interface at `http://127.0.0.1:12345/`
+
+---
+
+## Demo
+
+<https://github.com/paulpeng-popo/Sudoku/releases/download/v1.0.0/sudoku_demo.mov>

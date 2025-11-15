@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="utf-8" />
+    <meta name="description" content="A simple Sudoku solver web application." />
+    <meta name="author" content="Paul Peng" />
+    <meta name="keywords"
+          content="Sudoku, Solver, Web Application, Python, Flask" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Sudoku Solver</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <header class="page-header">
+        <h1>數獨解題器</h1>
+        <p class="subtitle">格子中輸入 1～9，留空的地方讓我們幫你完成。完成後按下「開始解題」。</p>
+      </header>
+      <!-- dialog messages -->
+      <div class="dialog-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for msg in messages %}<div class="dialog-message">{{ msg }}</div>{% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div class="main-layout">
+        <!-- left side -->
+        <section class="solver-panel solver-left">
+          <form method="post" class="solver-form">
+            <h2 class="panel-title">輸入題目</h2>
+            <div class="hint">
+              <span class="hint-label">提示</span>
+              <span class="hint-text">請確保輸入的數字不違反數獨規則。</span>
+            </div>
+            <div class="sudoku-wrapper">
+              <table class="sudoku">
+                {% for r in range(9) %}
+                  <tr>
+                    {% for c in range(9) %}
+                      {% set idx = r * 9 + c %}
+                      {% set block = (r // 3) * 3 + (c // 3) %}
+                      {% set td_classes = [] %}
+                      {% if (c + 1) % 3 == 0 and c != 8 %}
+                        {% set _ = td_classes.append("block-right") %}
+                      {% endif %}
+                      {% if (r + 1) % 3 == 0 and r != 8 %}
+                        {% set _ = td_classes.append("block-bottom") %}
+                      {% endif %}
+                      {% if conflicts and idx in conflicts %}
+                        {% set _ = td_classes.append("cell-conflict") %}
+                      {% endif %}
+                      <td class="sudoku-cell {{ ' '.join(td_classes) }}"
+                          data-row="{{ r }}"
+                          data-col="{{ c }}"
+                          data-block="{{ block }}">
+                        <input type="text"
+                               name="cell{{ idx }}"
+                               maxlength="1"
+                               value="{{ board[idx] if board[idx] != 0 else '' }}"
+                               pattern="[1-9]"
+                               inputmode="numeric" />
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </table>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn primary-btn">開始解題</button>
+              <button type="button" class="btn secondary-btn" id="reset-btn">清空盤面</button>
+            </div>
+          </form>
+        </section>
+        <!-- right side -->
+        {% if solution %}
+          <section class="solver-panel solver-right">
+            <h2 class="panel-title">解答</h2>
+            {% if elapsed_time %}
+              <p class="elapsed-time">
+                求解時間：<strong>{{ "%.4f"|format(elapsed_time) }} 秒</strong>
+              </p>
+            {% endif %}
+            <div class="sudoku-wrapper">
+              <table class="sudoku">
+                {% for r in range(9) %}
+                  <tr>
+                    {% for c in range(9) %}
+                      {% set idx = r * 9 + c %} {% set block = (r // 3) * 3 + (c // 3) %} {% set td_classes = [] %}
+                      {% if (c + 1) % 3 == 0 and c != 8 %}
+                        {% set _ = td_classes.append("block-right") %}
+                      {% endif %}
+                      {% if (r + 1) % 3 == 0 and r != 8 %}
+                        {% set _ = td_classes.append("block-bottom") %}
+                      {% endif %}
+                      {% if board[idx] != 0 %}
+                        {% set _ = td_classes.append("cell-given") %}
+                      {% else %}
+                        {% set _ = td_classes.append("solution-cell") %}
+                      {% endif %}
+                      <td class="sudoku-cell {{ ' '.join(td_classes) }} "
+                          data-row="{{ r }}"
+                          data-col="{{ c }}"
+                          data-block="{{ block }}">{{ solution[idx] }}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </section>
+        {% endif %}
+      </div>
+    </div>
+    <footer class="page-footer">
+      <p>
+        Author：Paul Peng | <a href="https://github.com/paulpeng-popo" target="_blank">GitHub</a>
+      </p>
+    </footer>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

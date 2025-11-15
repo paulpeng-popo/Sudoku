@@ -1,0 +1,355 @@
+/* 基本排版與背景 */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 20px;
+}
+
+/* 標題區塊 */
+
+.page-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  letter-spacing: 0.06em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+/* 提示 */
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin-bottom: 16px;
+}
+
+.hint-label {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #e5e7eb;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* 浮動訊息容器（右上角） */
+
+.dialog-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 單一訊息框 */
+
+.dialog-message {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  min-width: 260px;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+
+  animation: fadeout 4s forwards;
+  /* 4 秒後淡出 */
+}
+
+/* 淡出動畫 */
+
+@keyframes fadeout {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* 左右布局 */
+
+.main-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  /* 小螢幕自動換行 */
+}
+
+/* Panel 卡片 */
+
+.solver-panel {
+  flex: 1 1 320px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px 18px 20px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.panel-title {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+/* Form 與按鈕 */
+
+.solver-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button,
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+  font-weight: 500;
+}
+
+button:disabled,
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 7px 18px rgba(37, 99, 235, 0.35);
+}
+
+.primary-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Reset 的次要按鈕 */
+
+.secondary-btn {
+  background: #e5e7eb;
+  color: #111827;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+}
+
+.secondary-btn:hover {
+  background: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.15);
+}
+
+.secondary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+/* 數獨棋盤 */
+
+.sudoku-wrapper {
+  display: inline-block;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+table.sudoku {
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+table.sudoku td {
+  border: 1px solid #d1d5db;
+  width: 34px;
+  height: 34px;
+  text-align: center;
+  padding: 0;
+}
+
+/* input 格子 */
+
+table.sudoku input {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: none;
+  font-size: 16px;
+  background-color: transparent;
+  outline: none;
+}
+
+table.sudoku input:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+  background-color: #eff6ff;
+}
+
+/* 有衝突的格子：紅底 + 紅框 + 字變紅 */
+
+.cell-conflict {
+  background-color: #fee2e2;
+  /* 淺紅底 */
+  border-color: #f97373 !important;
+  /* 深一點的紅框 */
+}
+
+.cell-conflict input {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+/* 已給定的格子：淺藍色底 */
+
+.cell-given {
+  background-color: #b3d1f7;
+  font-weight: bold;
+  color: #ff0000;
+}
+
+/* 3x3 block 粗線 */
+
+.block-right {
+  border-right: 2px solid #111827 !important;
+}
+
+.block-bottom {
+  border-bottom: 2px solid #111827 !important;
+}
+
+/* 解答格子 */
+
+.solution-cell {
+  background-color: #eef2ff;
+  font-weight: 600;
+}
+
+/* 求解時間 */
+
+.elapsed-time {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin: 0 0 12px;
+}
+
+/* hover 高亮：同 row / col / block */
+
+.hl-row {
+  background-color: #fef9c3;
+  /* 淺黃 */
+}
+
+.hl-col {
+  background-color: #e0f2fe;
+  /* 淺藍 */
+}
+
+.hl-block {
+  background-color: #f3e8ff;
+  /* 淺紫 */
+}
+
+/* 點擊數字後：高亮所有相同數字 */
+
+.digit-match {
+  box-shadow: 0 0 0 2px #2563eb inset;
+  background-color: #eff6ff;
+}
+
+/* footer */
+.page-footer {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* RWD 小螢幕調整 */
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 16px 12px 28px;
+  }
+
+  .page-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .solver-panel {
+    padding: 14px 14px 18px;
+  }
+
+  table.sudoku td {
+    width: 30px;
+    height: 30px;
+  }
+
+  table.sudoku input {
+    font-size: 14px;
+  }
+
+  .main-layout {
+    flex-direction: column;
+  }
+}
