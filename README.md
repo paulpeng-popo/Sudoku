@@ -1,4 +1,4 @@
-# Sudoku Web Solver
+# Sudoku Solver
 
 ![Sudoku Solver](demo/sudoku_solver.png)
 
@@ -39,10 +39,10 @@ Start the Flask server:
 python app.py
 ```
 
-Access the web interface at `http://127.0.0.1:12345/`
+Access the web interface at <http://127.0.0.1:12345/>
 
 ---
 
 ## Demo
 
-<https://github.com/paulpeng-popo/Sudoku/releases/download/v1.0.0/sudoku_demo.mov>
+<https://github.com/user-attachments/assets/2dc26ad4-a95f-44ec-9197-e59bd43bd138>
