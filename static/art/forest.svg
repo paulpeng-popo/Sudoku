@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" preserveAspectRatio="xMidYMid slice">
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#101b37"/><stop offset=".5" stop-color="#254950"/><stop offset="1" stop-color="#527b64"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#bbf1d8" stop-opacity=".45"/><stop offset="1" stop-color="#8bdecc" stop-opacity="0"/></radialGradient>
+ <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#315c50"/><stop offset="1" stop-color="#0b242d"/></linearGradient>
+ <linearGradient id="trunk" x2="1" y2="0"><stop stop-color="#071b26"/><stop offset=".6" stop-color="#15313a"/><stop offset="1" stop-color="#254647"/></linearGradient>
+ <filter id="soft"><feGaussianBlur stdDeviation="15"/></filter>
+ <pattern id="stars" width="180" height="170" patternUnits="userSpaceOnUse"><circle cx="24" cy="25" r="1.3" fill="#b6efd4" opacity=".6"/><circle cx="140" cy="93" r="1" fill="#d9e6b8" opacity=".35"/></pattern>
+ <g id="pine"><path d="M0 0l-45 115h25l-50 100h29l-56 100H97l-56-100h29l-50-100h25z"/><path d="M-6 240h12v140H-6z"/></g>
+</defs>
+<path fill="url(#sky)" d="M0 0h1400v1000H0z"/>
+<circle cx="780" cy="225" r="380" fill="url(#glow)"/>
+<circle cx="780" cy="225" r="80" fill="#d9eacb"/><circle cx="801" cy="210" r="77" fill="#243f4b" opacity=".91"/>
+<path fill="url(#stars)" d="M0 0h1400v700H0z"/>
+<path d="M440 80l230 675H515L300 0zm210-80l160 770H700L550 0z" fill="#b5eecf" opacity=".035"/>
+<g fill="#2b5053" opacity=".75"><use href="#pine" transform="translate(150 220) scale(1.8)"/><use href="#pine" transform="translate(400 260) scale(1.5)"/><use href="#pine" transform="translate(650 330) scale(1.2)"/><use href="#pine" transform="translate(1050 220) scale(1.7)"/><use href="#pine" transform="translate(1270 190) scale(1.9)"/></g>
+<g fill="#173b43"><use href="#pine" transform="translate(0 120) scale(2.1)"/><use href="#pine" transform="translate(280 340) scale(1.25)"/><use href="#pine" transform="translate(1170 280) scale(1.6)"/><use href="#pine" transform="translate(1440 100) scale(2.2)"/></g>
+<path d="M0 760q250-100 490-45 280-75 490-5 240-65 420 0v290H0z" fill="url(#ground)"/>
+<ellipse cx="720" cy="765" rx="470" ry="70" fill="#70a48a" opacity=".1" filter="url(#soft)"/>
+<path d="M490 1000q25-110 175-180t148-105q-40 55-100 80T620 1000" fill="#afc68b" opacity=".09"/>
+<g fill="none" stroke="#90ce9f" opacity=".2"><ellipse cx="730" cy="815" rx="360" ry="70" stroke-width="2"/><ellipse cx="730" cy="815" rx="310" ry="54"/><path d="M370 815h720M730 745v140M475 766l510 98m0-98-510 98"/></g>
+<g fill="#3e625c" stroke="#6e8b77" stroke-width="3"><path d="M1010 675l-15-135 50-42 46 15 12 154z"/><path d="M1065 677l18-95 58-15 32 105z"/></g>
+<path d="M1023 615l24-18-6-45m-20 3 26 8" fill="none" stroke="#96dfb1" stroke-width="4" opacity=".7"/>
+<g fill="url(#trunk)"><path d="M0 0h165l-26 270 38 245-25 225 64 185L0 970z"/><path d="M1400 0h-135l19 310-60 210 28 245-64 180 212 55z"/></g>
+<g fill="none" stroke="#0c2530" stroke-width="36" stroke-linecap="round"><path d="M95 400l180-210 140-50M122 220L290 55M1290 330l-140-175-130-35M1300 520l-150-100-88-3"/></g>
+<g fill="#13313a"><ellipse cx="180" cy="65" rx="280" ry="95"/><ellipse cx="1200" cy="30" rx="280" ry="105"/><ellipse cx="50" cy="170" rx="140" ry="80"/></g>
+<g fill="#0b252e"><path d="M0 1000v-85l85-65-23 85 74-124-25 130 90-78-48 108 127-50-75 79zm1400 0V850l-67 88 5-132-56 133-23-105-22 117-94-66 66 115z"/></g>
+<g fill="#d7e994"><circle cx="330" cy="665" r="3"/><circle cx="490" cy="585" r="2"/><circle cx="860" cy="650" r="3"/><circle cx="1160" cy="755" r="3"/><circle cx="605" cy="720" r="2"/><circle cx="940" cy="440" r="2"/></g>
+<g fill="#94d8b5" opacity=".2" filter="url(#soft)"><circle cx="330" cy="665" r="16"/><circle cx="860" cy="650" r="20"/></g>
+</svg>

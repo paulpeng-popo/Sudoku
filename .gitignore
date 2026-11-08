@@ -1,0 +1,20 @@
+.venv/
+.DS_Store
+**/__pycache__/
+
+# 本機設定、憑證與資料
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+*.log
+.coverage
+htmlcov/
+.ruff_cache/
+.pytest_cache/

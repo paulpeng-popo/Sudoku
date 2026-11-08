@@ -1,0 +1,8 @@
+  <aside class="side-rail" aria-label="模式導覽">
+    <div class="brand-mark" aria-hidden="true">九</div>
+    <nav>
+      {% if solver_page %}<a href="/play?view=battle" id="nav-game" class="nav-item" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 7 4 9 13M20 3l-7 4L4 20M3 15l6 6m6-6 6 6"/></svg><span>遊戲</span></a>{% else %}<button id="nav-game" class="nav-item" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 7 4 9 13M20 3l-7 4L4 20M3 15l6 6m6-6 6 6"/></svg><span>遊戲</span></button>{% endif %}
+      {% if solver_page %}<a href="/play?view=library" id="nav-library" class="nav-item" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/></svg><span>圖鑑</span></a>{% else %}<button id="nav-library" class="nav-item" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/></svg><span>圖鑑</span></button>{% endif %}
+    </nav>
+    <a href="/" class="rail-link" {% if solver_page %}aria-current="page"{% endif %} title="數獨解題器" aria-label="數獨解題器"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 4v16"/></svg><span>解題器</span></a>
+  </aside>

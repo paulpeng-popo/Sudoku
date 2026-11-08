@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101d28">
+  <title>九宮守衛</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='play.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='battle.css') }}">
+</head>
+<body>
+<div id="app-shell" class="app-shell mode-battle">
+  {% include 'navigation.html' %}
+  <header class="topbar"><div class="game-brand"><h1>九宮守衛</h1><span id="view-label">遊戲</span></div><div class="header-actions"><button id="sound-toggle" aria-pressed="false" title="切換音效">音效 關</button><button id="nav-challenge">章節地圖</button><span id="world-name" class="sr-only">月影森林</span></div></header>
+  <main id="play-space" class="play-space">
+    <section id="stage-zone" class="stage-zone" aria-label="冒險區域">
+      <section id="challenge-view" class="chapter" aria-label="冒險地圖">
+        <div class="chapter-switch"><button id="chapter-one">第一章</button><button id="chapter-two">第二章</button><button id="chapter-three">第三章</button></div><div class="map-heading"><div><span id="chapter-label" class="eyebrow">第一章</span><h2 id="chapter-title">月影森林</h2></div><div class="map-progress"><span id="progress"></span><progress id="progress-bar" max="3" value="0" aria-label="關卡完成進度"></progress></div></div>
+        <div class="level-map"><svg class="map-path" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M140 440C520 470 520 260 300 290S50 100 430 110"/></svg><nav id="levels" aria-label="關卡選擇"></nav></div>
+      </section>
+      <section id="battle-view" class="battle-card" aria-label="戰鬥場景">
+        <div id="battle-content">
+          <div class="battle-hud"><div class="hero-hud"><span id="hero-name" class="hud-caption">守衛</span><span id="battle-hearts" aria-label="玩家血量">♥♥♥</span><span id="battle-rpg" class="rpg-caption"></span></div><div class="enemy-hud"><span id="monster-name" class="hud-caption">荊棘石獸</span><span id="battle-enemy-hp">HP 3</span></div></div>
+          <div id="battle-arena" class="battle-arena" aria-label="森林戰場">
+            <div class="arena-caption" aria-hidden="true"><span>九宮守衛</span><h2 id="arena-name">月影森林</h2></div>
+            <span class="firefly firefly-one" aria-hidden="true"></span><span class="firefly firefly-two" aria-hidden="true"></span>
+            <div id="battle-hero" class="battle-hero" aria-hidden="true"><img id="hero-art" src="{{ url_for('static', filename='art/anime/warden.png') }}" alt=""></div>
+            <div id="battle-monster" class="battle-monster" aria-hidden="true"><img id="monster-art" src="{{ url_for('static', filename='art/anime/bramble.png') }}" alt=""></div>
+            <img id="pet-art" class="battle-pet" src="/static/art/anime/fox.png" alt="燈火狐">
+            <span id="battle-combo" class="battle-combo"></span><span id="damage-number" class="damage-number" aria-hidden="true"></span>
+            <span id="battle-bolt" class="battle-bolt" aria-hidden="true">✦</span>
+            <div id="battle-overlay" class="battle-overlay" hidden></div>
+          </div>
+          <div class="battle-bottom"><div class="battle-clock"><span id="battle-clock-label">20s</span><progress id="battle-timer" max="20" value="20" aria-label="下次怪物前進倒數"></progress></div><p id="battle-status" role="status" aria-live="polite"></p><div class="battle-buttons"><button id="battle-start" class="start-button">開始戰鬥 <span aria-hidden="true">↗</span></button><button id="hero-skill" title="解開 3 格蓄滿能量：下次傷害 ×1.8，獲得一次護盾" hidden></button><button id="pet-skill" hidden></button><button id="battle-pause" hidden>暫停</button><button id="battle-exit" hidden>撤退</button><button id="battle-retry" hidden>重新挑戰</button></div></div>
+        </div>
+      </section>
+    </section>
+    <section id="preparation" class="preparation">
+      <span id="prep-chapter" class="eyebrow">第一章 · 出戰準備</span><h2 id="stage-title"></h2><p id="stage-intro"></p>
+      <div class="party-preview"><img id="prep-hero" alt="出戰角色"><img id="prep-pet" alt="出戰夥伴"></div>
+      <p id="party-name"></p><p id="party-stats"></p><p id="party-growth"></p><button id="configure-party">配置隊伍 ↗</button>
+      <div class="stage-reward"><span>首次通關獎勵</span><strong id="stage-reward"></strong></div>
+      <button id="enter-stage" class="start-button">進入戰場 →</button>
+      <p id="chapter-badge" hidden>✧ 月影守護者 · 第一章已完成</p>
+    </section>
+    <section id="game-panel" class="game" aria-label="數獨操作區">
+      <div class="game-heading"><div><span id="difficulty" class="badge"></span><h2 id="level-title"></h2></div><span id="level-number"></span></div>
+      <div class="board-slot">
+        <div id="board" class="game-board" role="group" aria-label="數獨作答盤面"></div>
+        <div id="game-message" role="status" aria-live="polite" class="feedback"></div>
+        <div id="board-cover" class="board-cover"><span class="cover-rune" aria-hidden="true">✦</span><strong>準備出擊</strong></div>
+        <section id="answer-panel" hidden><div id="answer-board" class="answer-grid" aria-label="完整解答"></div></section>
+        <section id="completion-panel" class="completion-panel" hidden aria-live="polite"><span class="victory-rune" aria-hidden="true">✧</span><strong id="completion-title"></strong><p id="completion-skills" class="sr-only"></p><p id="victory-reward"></p><button id="result-next">繼續冒險 →</button></section>
+      </div>
+      <div id="keypad" class="keypad" aria-label="數字鍵盤"></div>
+      <div class="game-actions"><button id="notes" aria-pressed="false" title="切換候選數筆記">筆記</button><button id="erase">清除</button><button id="undo">撤銷</button><button id="check" title="檢查作答會計入提示後完成">檢查</button></div>
+      <div class="help-panel"><button id="hint">提示</button><p id="hint-text" aria-live="polite"></p><button id="apply-hint" hidden>填入</button></div>
+      <div class="bottom-actions"><button id="restart">換題 <span aria-hidden="true">↻</span></button><button id="answer">解答</button><button id="next" class="primary-btn" hidden>下一關 →</button></div>
+      <p id="level-goal" class="sr-only"></p><p id="skill-summary" class="sr-only"></p><p id="save-note" class="sr-only">進度儲存在此瀏覽器。</p>
+    </section>
+  </main>
+  <section id="library" class="library" hidden aria-label="冒險圖鑑">
+    <header class="library-heading"><div><span class="eyebrow">冒險準備</span><h2>守衛圖鑑</h2></div><button id="library-close">返回戰場 ↗</button></header>
+    <nav id="library-tabs" aria-label="資源分類"></nav>
+    <div id="resource-cards" class="resource-cards" tabindex="0" aria-label="資源清單，可捲動"></div>
+    <footer class="library-footer"><span id="loadout-summary"></span></footer>
+    <p id="library-message" role="status"></p>
+  </section>
+</div>
+<noscript>請啟用 JavaScript 以遊玩，或使用<a href="/">自由解題器</a>。</noscript>
+<script id="legacy-puzzles" type="application/json">{{ legacy_puzzles | tojson }}</script>
+<script id="puzzle-data" type="application/json">{{ puzzles | tojson }}</script>
+<script src="{{ url_for('static', filename='resources.js') }}" defer></script>
+<script src="{{ url_for('static', filename='adventure.js') }}" defer></script>
+<script src="{{ url_for('static', filename='library.js') }}" defer></script>
+<script src="{{ url_for('static', filename='battle.js') }}" defer></script>
+<script src="{{ url_for('static', filename='rpg.js') }}" defer></script>
+<script src="{{ url_for('static', filename='play.js') }}" defer></script>
+</body></html>

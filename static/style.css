@@ -1,0 +1,37 @@
+/* 解題器沿用 play.css 的共用外框與色彩。 */
+.solver-workspace { min-width:0; min-height:0; padding:18px; display:flex; flex-direction:column; gap:12px; }
+.solver-workspace .feedback { position:static; margin:0; padding:10px 14px; background:#233f45; color:#d9e6dc; border-radius:10px; font-size:14px; flex-shrink:0; }
+.solver-workspace .feedback:empty { display:none; }
+.solver-workspace .feedback.error { background:#532f37; color:#ffdbd2; }
+.solver-workspace .feedback.success { background:#244c3f; color:#d3f3d4; }
+.main-layout { flex:1; min-height:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.solver-panel { min-width:0; min-height:0; border:1px solid #53675966; background:#152833; border-radius:20px; padding:20px; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#687c77 transparent; }
+.solver-form { height:100%; min-height:480px; display:flex; flex-direction:column; gap:12px; }
+.panel-title { font-size:20px; color:#ead8b2; margin:0; }
+.sudoku-wrapper { flex:1; min-height:240px; container-type:size; display:grid; place-items:center; }
+table.sudoku { border-collapse:collapse; table-layout:fixed; width:min(100cqw,100cqh); height:min(100cqw,100cqh); background:#eee9dc; color:#263d41; border:3px solid #b7c2ad; }
+table.sudoku td { width:11.111%; height:11.111%; padding:0; text-align:center; border:1px solid #c3c7b9; font-size:clamp(16px,4cqh,30px); }
+table.sudoku input { display:block; width:100%; height:100%; min-width:0; border:0; border-radius:0; text-align:center; font:inherit; color:#263d41; background:transparent; outline:none; }
+table.sudoku input:focus { box-shadow:inset 0 0 0 3px #b99948; background:#fff3c5; }
+.block-right { border-right:3px solid #6d8078 !important; }
+.block-bottom { border-bottom:3px solid #6d8078 !important; }
+.cell-given { font-weight:700; background:#d8ded0; }
+.solution-cell { color:#276852; font-weight:600; }
+.hl-row,.hl-col,.hl-block { background:#d8e7db; }
+.digit-match { box-shadow:inset 0 0 0 2px #9d873c; background:#fff1bd; }
+.sudoku-cell.cell-conflict { background:#ffd8ce; outline:2px solid #b94b46; outline-offset:-2px; }
+.cell-conflict input { color:#992e30; }
+.import-panel { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; }
+.import-panel label { grid-column:1/-1; color:#9eb2b0; font-size:12px; }
+.import-panel textarea { width:100%; min-width:0; height:52px; padding:8px; resize:none; border:1px solid #506b69; border-radius:8px; color:#deebdf; background:#0e202b; font:13px monospace; }
+.form-actions { display:flex; gap:10px; }
+.form-actions button { flex:1; }
+.primary-btn { background:#637551; color:#fff0cf; border-color:#9eaa7c; }
+.solver-right { display:flex; flex-direction:column; gap:12px; }
+.elapsed-time { font-size:12px; color:#a7bfb8; margin:0; }
+.solver-right .sudoku-wrapper { min-height:280px; }
+.empty-solution { align-items:center; justify-content:center; background:radial-gradient(ellipse,#24433e,#142832); color:#94aaa5; }
+.empty-solution > span { color:#b7ca95; font-size:90px; text-shadow:0 0 70px #a3d2a655; }
+.empty-solution h2 { font-size:22px; margin:0; color:#dfddbd; }
+.empty-solution p { font-size:13px; }
+@media(max-width:700px) { .solver-workspace { padding:8px; } .main-layout { grid-template-columns:1fr; overflow-y:auto; gap:10px; overscroll-behavior:contain; } .solver-panel { overflow:visible; padding:12px; min-height:520px; } .solver-right { min-height:420px; } .empty-solution { min-height:180px; } .import-panel { grid-template-columns:1fr 1fr; } .import-panel textarea { grid-column:1/-1; } .solver-form { min-height:495px; } }
