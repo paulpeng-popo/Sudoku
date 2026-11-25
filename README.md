@@ -12,4 +12,8 @@ Fill each empty cell with a digit from **1 to 9**. Each row, column, and **3×3 
 
 Follow the [launch guide](DEVELOPMENT.md#launch) to run the game on your computer. Your progress is saved in the browser you use to play. Clearing site data removes your save.
 
-To solve a puzzle of your own, open **Solver** in the sidebar and paste it in.
+## Solve your own puzzle
+
+Open **Solver** in the sidebar. Select **Load example**, or paste your puzzle and select **Import puzzle**. Select **Solve** to see the solution beside the original clues.
+
+![The Sudoku solver showing the example puzzle on the left and its solution on the right](demo/solver-preview.png)
