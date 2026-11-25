@@ -17,7 +17,15 @@
       {id:'crystal',name:'Frost Charm',art:art('gear/crystal'),description:'+4 defense. Reduces the charge distance after a wrong answer by 15%.',resist:15,defense:4},
       {id:'star',name:'Starlight Pendant',art:art('gear/star'),description:'+2 attack. Ignores 3 points of enemy defense.',attack:2,pierce:3}
     ],
-    monsters: [],
+    monsters: [
+      {id:'scarab',name:'Ironclad Scarab',art:art('scarab'),skill:'sand-shell',description:'An ancient armored guardian that patrols the dunes.',hp:5,vitality:58,defense:8,attack:15,xp:24,step:20,wrongStep:50},
+      {id:'phoenix',name:'Sunfire Phoenix',art:art('phoenix'),skill:'solar-rage',description:'An undying firebird guarding the far edge of the Starlit Dunes.',hp:6,vitality:125,defense:7,attack:20,xp:120,step:30,rageStep:45,rageWrong:60},
+      {id:'sentinel',name:'Frost Sentinel',art:art('sentinel'),skill:'shell',description:'A heavily armored golem guarding the frozen gate.',hp:4,vitality:42,defense:5,attack:14,xp:16,step:15,wrongStep:60},
+      {id:'dragon',name:'Everwinter Dragon',art:art('dragon'),skill:'blizzard',description:'A dragon of living ice that froze the Winter Throne.',hp:6,vitality:90,defense:6,attack:18,xp:80,step:30,rageStep:45,rageWrong:60},
+      {id:'bramble', name:'Bramble Beast', art:art('bramble'), skill:'march', description:'An ancient stone beast covered in moss.', hp:3,vitality:30,defense:1,attack:10,xp:10, step:20},
+      {id:'elder', name:'Eclipse Treant', art:art('elder'), skill:'rage', description:'A guardian rooted deep in the Heart of the Ruins.', hp:6,vitality:70,defense:3,attack:15,xp:60, step:25},
+      {id:'wraith', name:'Twilight Wraith', art:art('wraith'), skill:'rush', description:'A swift spirit haunting the ruins.', hp:2,vitality:22,defense:0,attack:8,xp:12, step:30}
+    ],
     pets: [
       {id:'fox', name:'Ember Fox', art:art('fox'), skill:'heal', description:'A healing spark glows at the tip of its tail.'},
       {id:'owl', name:'Moonfeather Owl', art:art('owl'), skill:'rewind', description:'A beat of its wings sends approaching enemies back.'}
@@ -39,7 +47,12 @@
       {id:'heal',art:art('skills/heal'),name:'Healing Spark',description:'Restores 1 HP, or 2 HP from level 5. Solve 8 cells to recharge. Using it at full health does not spend the charge.',kind:'Ember Fox · Active'},
       {id:'rewind',art:art('skills/rewind'),name:'Moonfeather Gust',description:'Sends the monster back to its starting point and resets the timer. Solve 8 cells to recharge.',kind:'Moonfeather Owl · Active'}
     ],
-    maps: []
+    maps: [
+      {id:'forest',name:'Moonshadow Forest',art:art('forest'),description:'Bramble beasts and wraiths appear in turn.',monsters:['bramble','wraith']},
+      {id:'ruins',name:'Starfall Ruins',art:art('ruins'),description:'Wraiths and bramble beasts appear in turn.',monsters:['wraith','bramble']},
+      {id:'frost',name:'Everwinter',art:art('frost'),description:'Frost sentinels guard the path to the dragon and its frozen throne.',monsters:['sentinel','wraith']},
+      {id:'dunes',name:'Starlit Dunes',art:art('dunes'),description:'Cross the dunes and the Astral Temple to face the Sunfire Phoenix.',monsters:['scarab','wraith']}
+    ]
   };
   if(typeof module !== 'undefined') module.exports = root.SudokuResources;
 })(globalThis);
