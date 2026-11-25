@@ -9,7 +9,7 @@
       $('nav-library').setAttribute('aria-pressed','false'); save();
     }
     function render() {
-      $('view-label').textContent = 'Codex';
+      $('view-label').textContent = 'Guide';
       $('nav-challenge').setAttribute('aria-pressed','false');
       $('nav-game').setAttribute('aria-pressed','false');
       $('library-tabs').replaceChildren();

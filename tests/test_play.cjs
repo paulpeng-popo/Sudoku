@@ -88,7 +88,7 @@ test('Defeat keeps stages locked and retry starts a fresh puzzle at full health 
  assert.equal(ui.state().seen.length,2); assert.equal(ui.state().view,'battle');
  await ui.get('battle-start').onclick(); assert.equal(ui.state()['first-step'].battle.hp,3);
 });
-test('Opening the map or codex pauses combat until the player resumes',async()=>{
+test('Opening the map or guide pauses combat until the player resumes',async()=>{
  const ui=setup(); await start(ui); ui.get('nav-challenge').onclick(); ui.advance(90000);
  assert.equal(ui.state()['first-step'].battle.status,'paused'); assert.equal(ui.state()['first-step'].battle.hp,3);
  await ui.get('enter-stage').onclick(); assert.equal(ui.state()['first-step'].battle.status,'paused');
@@ -106,7 +106,7 @@ test('A failed puzzle request preserves the battle and board for retry',async()=
  await ui.get('battle-exit').onclick(); assert.equal(ui.state()['first-step'].battle.status,'paused'); assert.equal(ui.state()['first-step'].board[0],5);
  assert.match(ui.get('game-message').textContent,/Could not finish/);
 });
-test('Heroes stay locked in the codex until earned and selections persist',async()=>{
+test('Heroes stay locked in the guide until earned and selections persist',async()=>{
  const ui=setup(); ui.get('nav-library').onclick();
  assert.equal(ui.get('resource-cards').children[1].children[1].children.at(-1).disabled,true);
  ui.get('library-close').onclick(); await start(ui); await win(ui); ui.get('nav-library').onclick();

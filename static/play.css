@@ -87,7 +87,7 @@ button[aria-pressed='true'] { color: #f4d89d; background: #695c3533; border-colo
 }
 @media(max-height:550px) and (orientation:landscape) { .app-shell { grid-template-columns: 52px minmax(0,1fr); grid-template-rows: 42px minmax(0,1fr); }.side-rail { padding: 8px 4px; gap: 12px; }.brand-mark { width:30px; height:30px; font-size:20px; }.nav-item { padding:7px 2px; font-size:10px; }.play-space { grid-template-columns:minmax(0,1fr) minmax(280px, .9fr); padding:6px; gap:6px; }.game { padding:8px; gap:4px; }.game-heading h2 { font-size:12px; }.game-heading .badge { padding:2px 4px; font-size:9px; }.keypad { gap:4px; }.keypad button { font-size:15px; padding:3px 0; }.game-actions button,.bottom-actions button { font-size:10px; padding:3px 7px; }.bottom-actions { padding-top:4px; }.help-panel p { font-size:10px; }.help-panel button { font-size:10px; padding:3px 5px; }.topbar { padding:0 14px; }.game-brand h1 { font-size:19px; }.level { padding:7px; font-size:11px; }.level::before { font-size:20px; }.chapter { padding:12px; }#levels { grid-template-rows:repeat(3,minmax(64px,1fr)); }.chapter { gap:6px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
-/* Only the card list scrolls in the codex. */
+/* Only the card list scrolls in the guide. */
 .library { grid-column:2; grid-row:2; min-height:0; min-width:0; padding:18px 24px; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto auto; gap:12px; background:radial-gradient(ellipse at 50% 30%,#283c50,#101b28 80%); }
 .library-heading,.library-footer { display:flex; align-items:center; gap:12px; justify-content:space-between; }
 .library-heading h2 { margin:3px 0 0; font-size:23px; }
