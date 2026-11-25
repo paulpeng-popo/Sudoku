@@ -107,7 +107,7 @@
         !integer('petCooldown',0,8) || !integer('shield',0,1) || !integer('earnedXP',0,10000) ||
         !integer('lastDamage',0,1000) || !integer('lastHurt',0,10) ||
         !['empowered','bossDefeated','bossActive','lastCritical'].every(k => typeof data[k] === 'boolean') ||
-        ![20,30,45].includes(data.baseSeconds) || !Number.isFinite(data.time) || data.time < 0 ||
+        (!Number.isSafeInteger(data.baseSeconds) || data.baseSeconds <= 0) || !Number.isFinite(data.time) || data.time < 0 ||
         !Number.isFinite(data.distance) || data.distance < 0 || data.distance >= 100 ||
         !Array.isArray(data.credited) || data.credited.some(i => !Number.isInteger(i) || i < 0 || i > 80) ||
         new Set(data.credited).size !== data.credited.length || data.credited.length + data.remaining > 81) return null;

@@ -35,10 +35,14 @@ progress { accent-color: #bed48e; width: 100%; height: 5px; display: block; bord
 .map-progress progress { margin-top: 8px; }
 .level-map { position:relative; flex:1; min-height:0; min-width:0; overflow:auto; scrollbar-width:thin; overscroll-behavior:contain; }
 .map-path { position: absolute; width: 100%; height: 100%; }
+.map-path.off-trail { display: none; }
 .map-path path { fill: none; stroke: #b8d1a575; stroke-width: 3; stroke-dasharray: 6 10; }
 #levels { position:relative; min-height:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(90px,1fr)); gap:10px; padding:8px; }
 .level { position:relative; width:100%; min-width:0; max-width:200px; align-self:center; justify-self:center; overflow-wrap:anywhere; white-space:normal; line-height:1.5; padding:14px 10px; text-align: center; border-radius: 15px; background: linear-gradient(135deg,#375651,#193239); border: 1px solid #a7be8c80; box-shadow: 0 10px 24px #0004; color: #e9eddb; font-size: 15px; }
 .level:nth-child(1) { grid-column:1; grid-row:3; }.level:nth-child(2) { grid-column:2; grid-row:2; }.level:nth-child(3) { grid-column:3; grid-row:1; }
+/* The illustrated trail has three stops. Other chapter sizes use a scrolling grid. */
+#levels.stage-list { grid-template-columns: repeat(auto-fit, minmax(min(132px, 100%), 1fr)); grid-template-rows: none; grid-auto-rows: minmax(74px, auto); align-content: center; }
+#levels.stage-list .level { grid-column: auto; grid-row: auto; }
 .level::before { content: '✦'; display: block; color: #e8d392; font-size: 32px; margin-bottom: 8px; }
 .level small { display: block; margin-top: 8px; color: #adbfad; font-size: 11px; }
 .level[aria-current='step'] { border-color: #eed69a; box-shadow: 0 0 0 4px #d9c78a13, 0 10px 30px #0005; }

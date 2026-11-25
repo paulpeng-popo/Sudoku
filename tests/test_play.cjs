@@ -18,10 +18,10 @@ class Element {
   select() {}
   focus() { this.onfocus?.(); }
 }
-function setup(initial = '{}', failingStorage = false) {
+function setup(initial = '{}', failingStorage = false, chapters = require('../campaign.json')) {
   const ids = {};
   const get = id => ids[id] ||= new Element();
-  get('campaign-data').textContent = JSON.stringify(require('../campaign.json'));
+  get('campaign-data').textContent = JSON.stringify(chapters);
   get('puzzle-data').textContent = JSON.stringify(puzzles);
   if (initial === '{}') initial = JSON.stringify({view: 'challenge'});
   let stored = initial, newRequests = 0, now = 0, timer, failRequest = false, delayNext = null;
@@ -198,4 +198,43 @@ test('Nine stage clears unlock heroes, gear, and a badge without duplicating XP 
  assert.equal(restored.state().experience,xp);
  assert.equal(restored.state().loadout.hero,'astrologer');
  assert.equal(restored.state().loadout.gear,'star');
+});
+
+test('Uneven chapters use configured boundaries for navigation, progress and saved stages', async () => {
+  const original = require('../campaign.json');
+  const stages = original.flatMap(chapter => chapter.stages);
+  const chapters = [
+    {...original[0], stages: stages.slice(0, 4)},
+    {...original[1], stages: stages.slice(4, 6)},
+    {...original[2], stages: stages.slice(6, 8)},
+    {...original[2], button: 'chapter-four', label: 'Chapter 4', stages: [{...stages[8], seconds: 37}]},
+  ];
+  const ui = setup('{}', false, chapters);
+  assert.equal(ui.get('levels').children.length, 4);
+  for (let i = 0; i < stages.length; i++) {
+    assert.equal(ui.state().active, stages[i].id);
+    await start(ui);
+    if (i === 8) {
+      const resumed = setup(ui.stored(), false, chapters);
+      const battle = resumed.state().sunspire.battle;
+      assert.equal(battle.baseSeconds, 37);
+      assert.equal(battle.status, 'paused');
+    }
+    await win(ui);
+    if (i === 2) {
+      assert.equal(ui.get('chapter-two').disabled, true);
+      assert.equal(ui.get('chapter-badge').hidden, true);
+    }
+    if (i === 3) {
+      assert.equal(ui.get('progress').textContent, '4 / 4');
+      assert.match(ui.get('result-next').textContent, /Chapter 2/);
+      assert.equal(ui.get('chapter-badge').hidden, false);
+    }
+    if (i < stages.length - 1) ui.get('result-next').onclick();
+  }
+  const restored = setup(ui.stored(), false, chapters);
+  assert.equal(restored.state().active, 'sunspire');
+  assert.equal(restored.get('chapter-label').textContent, 'Chapter 4');
+  assert.equal(restored.get('progress-bar').max, 1);
+  assert.equal(restored.get('progress').textContent, '1 / 1');
 });

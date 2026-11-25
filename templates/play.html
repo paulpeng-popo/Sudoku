@@ -15,8 +15,16 @@
   <main id="play-space" class="play-space">
     <section id="stage-zone" class="stage-zone" aria-label="Adventure area">
       <section id="challenge-view" class="chapter" aria-label="Adventure map">
-        <div class="chapter-switch"><button id="chapter-one">Chapter 1</button><button id="chapter-two">Chapter 2</button><button id="chapter-three">Chapter 3</button></div><div class="map-heading"><div><span id="chapter-label" class="eyebrow">Chapter 1</span><h2 id="chapter-title">Moonshadow Forest</h2></div><div class="map-progress"><span id="progress"></span><progress id="progress-bar" max="3" value="0" aria-label="Stage completion"></progress></div></div>
-        <div class="level-map"><svg class="map-path" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M140 440C520 470 520 260 300 290S50 100 430 110"/></svg><nav id="levels" aria-label="Choose a stage"></nav></div>
+        <div class="chapter-switch">
+          {% for chapter in chapters %}
+          <button id="{{ chapter.button }}">{{ chapter.label }}</button>
+          {% endfor %}
+        </div>
+        <div class="map-heading">
+          <div><span id="chapter-label" class="eyebrow">{{ chapters[0].label }}</span><h2 id="chapter-title">{{ chapters[0].name }}</h2></div>
+          <div class="map-progress"><span id="progress"></span><progress id="progress-bar" max="{{ chapters[0].stages | length }}" value="0" aria-label="Stage completion"></progress></div>
+        </div>
+        <div class="level-map"><svg id="map-path" class="map-path" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M140 440C520 470 520 260 300 290S50 100 430 110"/></svg><nav id="levels" aria-label="Choose a stage"></nav></div>
       </section>
       <section id="battle-view" class="battle-card" aria-label="Battle scene">
         <div id="battle-content">
@@ -36,12 +44,12 @@
       </section>
     </section>
     <section id="preparation" class="preparation">
-      <span id="prep-chapter" class="eyebrow">Chapter 1 · Battle prep</span><h2 id="stage-title"></h2><p id="stage-intro"></p>
+      <span id="prep-chapter" class="eyebrow">{{ chapters[0].label }} · Battle prep</span><h2 id="stage-title"></h2><p id="stage-intro"></p>
       <div class="party-preview"><img id="prep-hero" alt="Selected hero"><img id="prep-pet" alt="Selected companion"></div>
       <p id="party-name"></p><p id="party-stats"></p><p id="party-growth"></p><button id="configure-party">Set up party ↗</button>
       <div class="stage-reward"><span>First clear reward</span><strong id="stage-reward"></strong></div>
       <button id="enter-stage" class="start-button">Enter battle →</button>
-      <p id="chapter-badge" hidden>✧ Moonshadow Guardian · Chapter 1 complete</p>
+      <p id="chapter-badge" hidden>✧ {{ chapters[0].badge }} · {{ chapters[0].label }} complete</p>
     </section>
     <section id="game-panel" class="game" aria-label="Sudoku controls">
       <div class="game-heading"><div><span id="difficulty" class="badge"></span><h2 id="level-title"></h2></div><span id="level-number"></span></div>

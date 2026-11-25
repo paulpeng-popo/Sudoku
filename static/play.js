@@ -1,6 +1,5 @@
 (() => {
   'use strict';
-  const puzzles = JSON.parse(document.getElementById('puzzle-data').textContent);
   const $ = id => document.getElementById(id);
   const KEY = 'sudoku-journey-v1';
   let saved = {}, storageOK = true;
@@ -9,6 +8,12 @@
   const requestedView = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(globalThis.location?.search || '').get('view') : null;
   let view = saved.view === 'battle' ? 'battle' : 'challenge';
   const adventure = globalThis.SudokuAdventure;
+  const puzzleData = JSON.parse($('puzzle-data').textContent);
+  const puzzleById = new Map(puzzleData.map(puzzle => [puzzle.id, puzzle]));
+  const puzzles = adventure.stages.map(stage => puzzleById.get(stage.id));
+  const indexById = new Map(puzzles.map((puzzle, index) => [puzzle.id, index]));
+  const chapterForLevel = adventure.chapters.flatMap(chapter => chapter.stages.map(() => chapter));
+  const legacyPuzzles = JSON.parse($('legacy-puzzles').textContent || '[]');
   let experience = Number.isSafeInteger(saved.experience) && saved.experience >= 0 ? Math.min(saved.experience, 1000000) : 0;
   let soundOn = saved.soundOn === true, audioContext;
   const resources = globalThis.SudokuResources;
@@ -21,7 +26,7 @@
   const states = puzzles.map(p => {
     const s = saved[p.id], initialPuzzle = p.puzzle;
     // Restore the original fixed puzzle for older saves that omitted the board layout.
-    const legacy = JSON.parse(document.getElementById('legacy-puzzles').textContent || '[]').find(item => item.id === p.id);
+    const legacy = legacyPuzzles.find(item => item.id === p.id);
     if (s && typeof s.puzzle === 'string' && /^[0-9]{81}$/.test(s.puzzle)) p.puzzle = s.puzzle;
     else if (s && legacy) p.puzzle = legacy.puzzle;
     if (s && p.puzzle !== initialPuzzle) p.profile = null;
@@ -35,10 +40,21 @@
   const cleared = () => puzzles.filter((p,i) => states[i].battleWon).map(p => p.id);
   const owns = (group,id) => !adventure || adventure.owns(group,id,cleared());
   if(resources) for(const [slot,group] of [['hero','heroes'],['pet','pets'],['gear','equipment']]) { if(!owns(group,loadout[slot])) loadout[slot] = resources[group][0].id; }
-  const mission = () => adventure?.stages[level];
-  const unlocked = i => i === 0 || (i >= 3 ? states[i - 1].battleWon : Boolean(states[i - 1].best));
-  const chapterIndex = () => Math.floor(level / 3);
-  const chapter = () => adventure.chapters[chapterIndex()];
+  const mission = () => adventure.stages[level];
+  const chapter = () => chapterForLevel[level];
+  const firstLevel = ch => indexById.get(ch.stages[0].id);
+  const finalStage = ch => ch.stages[ch.stages.length - 1];
+
+  function unlocked(index) {
+    if (index === 0) return true;
+    const nextChapter = chapterForLevel[index];
+    const previous = states[index - 1];
+    if (nextChapter === chapterForLevel[index - 1] && nextChapter.advanceOn === 'completion') {
+      return Boolean(previous.best);
+    }
+    return previous.battleWon;
+  }
+
   const growth = () => adventure.growth(experience, cleared());
   const rank = () => growth().level;
   const gear = () => resources.equipment.find(g => g.id === loadout.gear) || resources.equipment[0];
@@ -50,26 +66,40 @@
   }
   function message(text, kind = 'info') { $('game-message').textContent = text; $('game-message').className = `feedback ${kind}`; }
   function map() {
-    $('levels').replaceChildren();
-    puzzles.forEach((p, i) => {
-      if(Math.floor(i/3) !== chapterIndex()) return;
-      const b = document.createElement('button'); b.className = 'level'; b.disabled = !unlocked(i) || busy;
-      b.setAttribute('aria-current', i === level ? 'step' : 'false');
-      b.append(`${i % 3 + 1}. ${adventure?.stages[i].name || p.title}`);
+    const ch = chapter();
+    const levels = $('levels');
+    levels.replaceChildren();
+    levels.classList.toggle('stage-list', ch.stages.length !== 3);
+    $('map-path').classList.toggle('off-trail', ch.stages.length !== 3);
+    let count = 0;
+    ch.stages.forEach((stage, position) => {
+      const i = indexById.get(stage.id);
+      const state = states[i];
+      const available = unlocked(i);
+      if (state.battleWon || state.best) count++;
+      const button = document.createElement('button');
+      button.className = 'level';
+      button.disabled = !available || busy;
+      button.setAttribute('aria-current', i === level ? 'step' : 'false');
+      button.append(`${position + 1}. ${stage.name}`);
       const label = document.createElement('small');
-      label.textContent = !unlocked(i) ? 'Locked' : states[i].battleWon ? '✓ Cleared' : states[i].best ? '✓ Cleared · Replay' : states[i].revealed ? 'Solution seen · Retry' : `${p.difficulty} · Ready`;
-      b.append(label); b.onclick = () => open(i); $('levels').append(b);
+      label.textContent = !available ? 'Locked' : state.battleWon ? '✓ Cleared' : state.best ? '✓ Cleared · Replay' : state.revealed ? 'Solution seen · Retry' : `${puzzles[i].difficulty} · Ready`;
+      button.append(label);
+      button.onclick = () => open(i);
+      levels.append(button);
     });
-    const count = states.slice(chapterIndex()*3,chapterIndex()*3+3).filter(s => s.battleWon || s.best).length;
-    $('progress').textContent = `${count} / 3`;
+    $('progress').textContent = `${count} / ${ch.stages.length}`;
+    $('progress-bar').max = ch.stages.length;
     $('progress-bar').value = count;
-    $('chapter-label').textContent = chapter().label; $('chapter-title').textContent = chapter().name;
-    adventure.chapters.forEach((c, i) => {
-      const available = i === 0 || states[i * 3 - 1].battleWon;
-      $(c.button).setAttribute('aria-pressed', String(chapterIndex() === i));
-      $(c.button).disabled = busy || !available;
-      $(c.button).textContent = available ? c.label : `${c.label} · Locked`;
-    });
+    $('chapter-label').textContent = ch.label;
+    $('chapter-title').textContent = ch.name;
+    for (const entry of adventure.chapters) {
+      const button = $(entry.button);
+      const available = unlocked(firstLevel(entry));
+      button.setAttribute('aria-pressed', String(ch === entry));
+      button.disabled = busy || !available;
+      button.textContent = available ? entry.label : `${entry.label} · Locked`;
+    }
     $('next').hidden = !current().best || level === puzzles.length - 1;
   }
   const inputs = [];
@@ -117,9 +147,9 @@
     $('skill-summary').textContent = profile ? `Puzzle: ${profile.difficulty} · ${techniques.map(([name]) => name).join(', ') || 'No empty cells'}${profile.difficulty !== puzzles[level].difficulty ? ' (saved puzzle; start a new puzzle for the current difficulty)' : ''}` : 'Analyzing puzzle techniques…';
     $('completion-panel').hidden = !s.done;
     if (s.done) {
-      $('completion-title').textContent = s.battleVictory ? (mission()?.boss ? `${chapter().label} complete · ${chapter().badge}` : 'Victory') : s.assisted ? 'Cleared with hints' : 'Cleared without hints';
+      $('completion-title').textContent = s.battleVictory ? (mission() === finalStage(chapter()) ? `${chapter().label} complete · ${chapter().badge}` : 'Victory') : s.assisted ? 'Cleared with hints' : 'Cleared without hints';
       $('victory-reward').textContent = s.battleVictory ? `${mission()?.reward || ''} · EXP +${battle?.earnedXP || 0} · Guardian Lv. ${rank()}` : 'Win this battle to earn the stage reward.';
-      $('result-next').textContent = level === puzzles.length - 1 ? 'Back to map · Play again' : !unlocked(level+1) ? 'Retry to unlock the next stage' : ((level + 1) % 3 === 0 ? `On to ${adventure.chapters[Math.floor((level + 1) / 3)].label} →` : 'Next stage →');
+      $('result-next').textContent = level === puzzles.length - 1 ? 'Back to map · Play again' : !unlocked(level+1) ? 'Retry to unlock the next stage' : (chapterForLevel[level + 1] !== chapter() ? `On to ${chapterForLevel[level + 1].label} →` : 'Next stage →');
       $('completion-skills').textContent = techniques.map(([name, count]) => `${name}: ${count} ${count === 1 ? 'step' : 'steps'}`).join(' · ') || 'Puzzle complete.';
     }
   }
@@ -137,7 +167,7 @@
     if (battle) { battle.pause(); persist(); }
     seen.add(puzzles[i].puzzle);
     level = i; battle = SudokuBattle.restore(current().battle); lastTick = performance.now(); selected = puzzles[i].puzzle.indexOf('0'); history = []; revision++; clearHint();
-    $('difficulty').textContent = puzzles[i].difficulty; $('level-title').textContent = adventure?.stages[i].name || puzzles[i].title; $('level-goal').textContent = puzzles[i].goal;
+    $('difficulty').textContent = puzzles[i].difficulty; $('level-title').textContent = mission().name; $('level-goal').textContent = puzzles[i].goal;
     $('level-number').textContent = `${i + 1} / ${puzzles.length}`; $('answer-panel').hidden = true;
     message(current().revealed ? 'You viewed the solution. Start a new attempt to clear this stage.' : current().done ? 'Stage complete! Continue to the next stage or play again.' : 'Select a cell. Use the arrow keys to move and the number keys to fill it.');
     if(mission()) loadout.map = mission().map;
@@ -240,7 +270,7 @@
       $('party-stats').title = 'Gear adds to base stats. Each level adds 2 ATK and 1 second (up to 5 extra seconds). Gain 1 DEF every two levels and 1 HP every four.';
       $('party-growth').textContent = `${gear().name} · ${growth().next ? `EXP ${experience} / ${growth().next}` : 'Lv.10 MAX'}`;
       $('stage-reward').textContent = current().battleWon ? '✓ Reward claimed' : mission().reward;
-      $('chapter-badge').hidden = !states[chapterIndex()*3+2].battleWon;
+      $('chapter-badge').hidden = !states[indexById.get(finalStage(chapter()).id)].battleWon;
       $('chapter-badge').textContent = `✧ ${chapter().badge} · ${chapter().label} complete`;
     }
     $('enter-stage').disabled = busy;
@@ -265,9 +295,9 @@
     if(current().done || current().revealed || battle?.status === 'lost') { if(!await newPuzzle(false)) return; }
     setView('battle');
   };
-  adventure.chapters.forEach((c, i) => {
-    $(c.button).onclick = () => { if(!busy && (i === 0 || states[i * 3 - 1].battleWon)) open(i * 3); };
-  });
+  for (const entry of adventure.chapters) {
+    $(entry.button).onclick = () => open(firstLevel(entry));
+  }
   $('configure-party').onclick = () => $('nav-library').onclick();
   $('sound-toggle').onclick = () => { soundOn = !soundOn; playSound('attack'); persist(); draw(); };
   function playSound(event) {
@@ -391,7 +421,7 @@
     const data = await api('check');
     if (!handle(data)) return;
     const s = current();
-    battle = new SudokuBattle({remaining: s.board.filter(v => !v).length, stageId: mission()?.id || null, rank:rank(), loadout: resources ? {...loadout} : null, seconds: mission()?.seconds || [20, 30, 45][level], credited: s.board.flatMap((v, i) => v ? [i] : [])});
+    battle = new SudokuBattle({remaining: s.board.filter(v => !v).length, stageId: mission().id, rank:rank(), loadout: resources ? {...loadout} : null, seconds: mission().seconds, credited: s.board.flatMap((v, i) => v ? [i] : [])});
     s.assisted = true; history = []; clearHint(); lastTick = performance.now();
     battleMessage('Battle started');
     persist(); draw();
