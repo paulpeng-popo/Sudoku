@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 
+from app import app
 from sudoku import SudokuSolver, SudokuState
 
 PUZZLE = [
@@ -97,3 +98,60 @@ class SolverTests(unittest.TestCase):
         self.s.reset()
         self.assertEqual(self.s.get_solved_board(), [0] * 81)
         self.assertEqual(self.s.solve(), SudokuState.MULTIPLE)
+
+
+class WebTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_home(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_data(as_text=True).count('name="cell'), 81)
+
+    def test_unique(self):
+        response = self.client.post(
+            "/", data={f"cell{i}": str(v) if v else "" for i, v in enumerate(PUZZLE)}
+        )
+        self.assertIn("This puzzle has a unique solution", response.get_data(as_text=True))
+        self.assertIn('id="solution-panel"', response.get_data(as_text=True))
+
+    def test_invalid_preserved_and_escaped(self):
+        html = self.client.post(
+            "/", data={"cell0": "5", "cell1": "<script>", "cell80": "9"}
+        ).get_data(as_text=True)
+        self.assertIn('value="5"', html)
+        self.assertIn('value="9"', html)
+        self.assertIn('value="&lt;script&gt;"', html)
+        self.assertIn('aria-invalid="true"', html)
+        self.assertNotIn('id="solution-panel"', html)
+
+    def test_multiple(self):
+        html = self.client.post("/", data={}).get_data(as_text=True)
+        self.assertIn("multiple solutions", html)
+
+    def test_conflict(self):
+        html = self.client.post("/", data={"cell0": "1", "cell1": "1"}).get_data(
+            as_text=True
+        )
+        self.assertIn("This puzzle has duplicate digits", html)
+        self.assertNotIn('id="solution-panel"', html)
+
+    def test_timeout(self):
+        with patch("sudoku.perf_counter", side_effect=[0, 4]):
+            html = self.client.post("/", data={}).get_data(as_text=True)
+        self.assertIn("Time limit reached", html)
+        self.assertNotIn('id="solution-panel"', html)
+
+    def test_payload_limit(self):
+        self.assertEqual(
+            self.client.post("/", data={"cell0": "x" * 17000}).status_code, 413
+        )
+
+    def test_development_defaults(self):
+        self.assertFalse(app.debug)
+        self.assertIsNone(app.secret_key)
+
+
+if __name__ == "__main__":
+    unittest.main()
