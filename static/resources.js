@@ -3,10 +3,25 @@
   const sprites = new Set(['warden','knight','fox','owl','bramble','wraith','sentinel','elder','dragon','ranger','astrologer','scarab','phoenix']);
   const art = name => sprites.has(name) ? `/static/art/anime/${name}.png` : `/static/art/${name}.svg`;
   root.SudokuResources = {
-    heroes: [],
-    equipment: [],
+    heroes: [
+      {id:'warden', name:'Grove Warden', art:art('warden'), skill:'repel', description:'An adventurer who guards the forest with an emerald staff.', knockback:10,attack:10,defense:2,timeBonus:3},
+      {id:'knight', name:'Starshield Knight', art:art('knight'), skill:'force', description:'A silver-armored knight who carries a shield studded with stars.', knockback:20,attack:13,defense:6},
+      {id:'ranger',name:'Windrunner',art:art('ranger'),skill:'piercing',description:'A ranger whose arrows ride the wind and pierce armor.',knockback:14,attack:11,defense:2,pierce:4,criticalEvery:4},
+      {id:'astrologer',name:'Starsand Mage',art:art('astrologer'),skill:'starlight',description:'A mage who reads the stars and turns drifting sand into starlight.',knockback:8,attack:9,defense:3,timeBonus:6,powerMultiplier:2.4}
+    ],
+    equipment: [
+      {id:'none',name:'No charm',art:art('gear/none'),description:'Leave the charm slot empty.'},
+      {id:'rune',name:'Impact Rune',art:art('gear/rune'),description:'+3 attack and +8% knockback.',knockback:8,attack:3},
+      {id:'hourglass',name:'Sandglass',art:art('gear/hourglass'),description:'Adds 5 seconds to each move.',seconds:5},
+      {id:'heart',name:'Life Charm',art:art('gear/heart'),description:'Adds 1 maximum health.',hp:1},
+      {id:'crystal',name:'Frost Charm',art:art('gear/crystal'),description:'+4 defense. Reduces the charge distance after a wrong answer by 15%.',resist:15,defense:4},
+      {id:'star',name:'Starlight Pendant',art:art('gear/star'),description:'+2 attack. Ignores 3 points of enemy defense.',attack:2,pierce:3}
+    ],
     monsters: [],
-    pets: [],
+    pets: [
+      {id:'fox', name:'Ember Fox', art:art('fox'), skill:'heal', description:'A healing spark glows at the tip of its tail.'},
+      {id:'owl', name:'Moonfeather Owl', art:art('owl'), skill:'rewind', description:'A beat of its wings sends approaching enemies back.'}
+    ],
     skills: [
       {id:'piercing',art:art('skills/piercing'),name:'Piercing Arrow',description:'Ignores 4 defense. Every fourth hit in a combo is a critical hit.',kind:'Windrunner · Passive'},
       {id:'starlight',art:art('skills/starlight'),name:'Astral Resonance',description:'Adds 6 seconds per move and raises the power strike multiplier to ×2.4.',kind:'Starsand Mage · Passive'},
