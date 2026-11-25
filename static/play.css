@@ -86,10 +86,34 @@ button[aria-pressed='true'] { color: #f4d89d; background: #695c3533; border-colo
 }
 @media(max-height:550px) and (orientation:landscape) { .app-shell { grid-template-columns: 52px minmax(0,1fr); grid-template-rows: 42px minmax(0,1fr); }.side-rail { padding: 8px 4px; gap: 12px; }.brand-mark { width:30px; height:30px; font-size:20px; }.nav-item { padding:7px 2px; font-size:10px; }.play-space { grid-template-columns:minmax(0,1fr) minmax(280px, .9fr); padding:6px; gap:6px; }.game { padding:8px; gap:4px; }.game-heading h2 { font-size:12px; }.game-heading .badge { padding:2px 4px; font-size:9px; }.keypad { gap:4px; }.keypad button { font-size:15px; padding:3px 0; }.game-actions button,.bottom-actions button { font-size:10px; padding:3px 7px; }.bottom-actions { padding-top:4px; }.help-panel p { font-size:10px; }.help-panel button { font-size:10px; padding:3px 5px; }.topbar { padding:0 14px; }.game-brand h1 { font-size:19px; }.level { padding:7px; font-size:11px; }.level::before { font-size:20px; }.chapter { padding:12px; }#levels { grid-template-rows:repeat(3,minmax(64px,1fr)); }.chapter { gap:6px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+/* Only the card list scrolls in the codex. */
+.library { grid-column:2; grid-row:2; min-height:0; min-width:0; padding:18px 24px; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto auto; gap:12px; background:radial-gradient(ellipse at 50% 30%,#283c50,#101b28 80%); }
+.library-heading,.library-footer { display:flex; align-items:center; gap:12px; justify-content:space-between; }
+.library-heading h2 { margin:3px 0 0; font-size:23px; }
+#library-tabs { display:flex; flex-wrap:wrap; gap:6px; }
+#library-tabs button { flex:0 0 auto; padding:7px 13px; font-size:12px; }
+#library-tabs button[aria-pressed=true],.resource-body button[aria-pressed=true] { background:#466967; color:#fff4cb; border-color:#bba46c; }
+.resource-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr)); grid-auto-rows:max-content; gap:12px; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#738778 transparent; align-content:start; padding:2px 6px 8px 0; }
+.resource-card { min-width:0; border:1px solid #506072; border-radius:12px; background:linear-gradient(160deg,#34445a88,#101e30); display:grid; grid-template-rows:150px auto; overflow:hidden; }
+.resource-card > img { width:100%; height:150px; object-fit:contain; padding:10px; filter:drop-shadow(0 5px 8px #0006); }
+.resource-maps > img { object-fit:cover; padding:0; }
+.resource-body { min-width:0; padding:12px; border-top:1px solid #ffffff12; background:#0f1c2bd9; }
+.resource-body h3 { margin:0 0 6px; font-size:16px; color:#f4e1ae; }
+.resource-body p { margin:5px 0; color:#d0d9e6; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.resource-body .resource-detail { color:#9fb8c5; }
+.resource-body button { margin-top:6px; padding:6px 10px; font-size:12px; }
+.resource-skills,.resource-equipment { grid-template-columns:64px minmax(0,1fr); grid-template-rows:auto; align-items:start; }
+.resource-skills > img,.resource-equipment > img { width:64px; height:64px; padding:9px; }
+.resource-skills .resource-body,.resource-equipment .resource-body { border:0; padding:10px 10px 10px 0; background:none; }
+.library-footer { font-size:12px; color:#b9c9d5; }
+#loadout-summary { overflow-wrap:anywhere; }
+#library-message { font-size:11px; color:#dcca96; margin:0; }
+#library-message:empty { display:none; }
 .nav-item { text-decoration:none; border:1px solid transparent; }
 .rail-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; font-size:11px; border-radius:10px; }
 .rail-link[aria-current=page] { background:#293d39; color:#efdab0; }
 .battle-pet { position:absolute; width:17%; height:auto; left:25%; bottom:21%; filter:drop-shadow(0 8px 10px #0008); pointer-events:none; }
+@media(max-width:700px) { .library { padding:10px; gap:8px; }.library-heading h2 { font-size:19px; }#library-tabs button { font-size:11px; padding:6px 8px; }.resource-cards { gap:8px; }.resource-card { grid-template-columns:84px minmax(0,1fr); grid-template-rows:auto; align-items:start; }.resource-card > img { height:110px; padding:6px; }.resource-body { border:0; padding:10px; }.resource-body h3 { font-size:14px; }.resource-body p { font-size:11px; }.resource-skills > img,.resource-equipment > img { width:84px; height:84px; padding:12px; }.library-footer { font-size:10px; } }
 .header-actions { display:flex; gap:8px; }
 .header-actions button { font-size:12px; padding:7px 10px; }
 .preparation { min-width:0; min-height:0; overflow:clip; background:linear-gradient(145deg,#1f393d,#132430); border:1px solid #64847155; border-radius:20px; padding:clamp(18px,3vw,42px); display:flex; flex-direction:column; gap:14px; }
@@ -117,11 +141,15 @@ button[aria-pressed='true'] { color: #f4d89d; background: #695c3533; border-colo
 @media(max-width:760px) { .header-actions { gap:4px; } .header-actions button { font-size:10px; padding:6px; white-space:nowrap; } .game-brand h1 { font-size:17px; letter-spacing:.08em; } .topbar { padding:0 8px; } .completion-panel { gap:8px; overflow:auto; } .completion-panel strong { font-size:14px; } #victory-reward { font-size:12px; margin:0; } #result-next { font-size:12px; padding:7px; } }
 .battle-pet { bottom:21%; }
 
+/* Keep padding around skill icons so they stay legible at small sizes. */
+
 .chapter-switch { display:flex; flex-wrap:wrap; flex:none; gap:8px; position:relative; z-index:2; }
 .chapter-switch button { padding:6px 12px; font-size:12px; }
 .chapter-switch button[aria-pressed=true] { background:#536b59; color:#f5dfaa; }
 
 #party-stats { color:#d6d7b0; font-size:12px; line-height:1.6; }
+.resource-growth { color:#c6dca2 !important; }
+
 
 @media(max-width:760px) and (orientation:portrait) { .chapter-switch { margin-bottom:7px; gap:5px; } .chapter-switch button { font-size:9px; padding:4px 7px; }  #library-tabs { flex-wrap:wrap; } #library-tabs button { flex:0 0 auto; } }
 

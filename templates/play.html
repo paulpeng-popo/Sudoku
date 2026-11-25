@@ -37,7 +37,7 @@
     <section id="preparation" class="preparation">
       <span id="prep-chapter" class="eyebrow">Chapter 1 · Battle prep</span><h2 id="stage-title"></h2><p id="stage-intro"></p>
       <div class="party-preview"><img id="prep-hero" alt="Selected hero"><img id="prep-pet" alt="Selected companion"></div>
-      <p id="party-name"></p><p id="party-stats"></p><p id="party-growth"></p>
+      <p id="party-name"></p><p id="party-stats"></p><p id="party-growth"></p><button id="configure-party">Set up party ↗</button>
       <div class="stage-reward"><span>First clear reward</span><strong id="stage-reward"></strong></div>
       <button id="enter-stage" class="start-button">Enter battle →</button>
       <p id="chapter-badge" hidden>✧ Moonshadow Guardian · Chapter 1 complete</p>
@@ -58,12 +58,20 @@
       <p id="level-goal" class="sr-only"></p><p id="skill-summary" class="sr-only"></p><p id="save-note" class="sr-only">Progress is saved in this browser.</p>
     </section>
   </main>
+  <section id="library" class="library" hidden aria-label="Adventure codex">
+    <header class="library-heading"><div><span class="eyebrow">Battle prep</span><h2>Guardian Codex</h2></div><button id="library-close">Back to battle ↗</button></header>
+    <nav id="library-tabs" aria-label="Resource categories"></nav>
+    <div id="resource-cards" class="resource-cards" tabindex="0" aria-label="Scrollable resource list"></div>
+    <footer class="library-footer"><span id="loadout-summary"></span></footer>
+    <p id="library-message" role="status"></p>
+  </section>
 </div>
 <noscript>Enable JavaScript to play, or use the <a href="/">Sudoku solver</a>.</noscript>
 <script id="legacy-puzzles" type="application/json">{{ legacy_puzzles | tojson }}</script>
 <script id="puzzle-data" type="application/json">{{ puzzles | tojson }}</script>
 <script src="{{ url_for('static', filename='resources.js') }}" defer></script>
 <script src="{{ url_for('static', filename='adventure.js') }}" defer></script>
+<script src="{{ url_for('static', filename='library.js') }}" defer></script>
 <script src="{{ url_for('static', filename='battle.js') }}" defer></script>
 <script src="{{ url_for('static', filename='rpg.js') }}" defer></script>
 <script src="{{ url_for('static', filename='play.js') }}" defer></script>

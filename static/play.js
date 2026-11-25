@@ -268,6 +268,7 @@
   adventure.chapters.forEach((c, i) => {
     $(c.button).onclick = () => { if(!busy && (i === 0 || states[i * 3 - 1].battleWon)) open(i * 3); };
   });
+  $('configure-party').onclick = () => $('nav-library').onclick();
   $('sound-toggle').onclick = () => { soundOn = !soundOn; playSound('attack'); persist(); draw(); };
   function playSound(event) {
     if(!soundOn || !window.AudioContext) return;
@@ -433,6 +434,11 @@
       $('pet-art').animate?.([{transform:'translateY(0)'},{transform:'translateY(-25px)',filter:'brightness(2)'},{transform:'translateY(0)'}],{duration:600});
       persist(); draw();
     };
+    globalThis.mountSudokuLibrary({resources, loadout, owns, rank, cleared, adventure, requirement: adventure.requirement,
+      open: () => { if(busy) return false; pauseBattle(); return true; },
+      locked: () => Boolean(battle && ['active','paused'].includes(battle.status)),
+      save: () => { persist(); draw(); }
+    });
   }
   $('next').onclick = async () => {
     if(busy) return;
@@ -444,4 +450,5 @@
   const resume = puzzles.findIndex(p => p.id === saved.active);
   open(resume >= 0 && unlocked(resume) ? resume : 0);
   if(!battle || requestedView === 'challenge') setView('challenge');
+  if(requestedView === 'library' && resources) $('nav-library').onclick();
 })();

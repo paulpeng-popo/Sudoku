@@ -43,7 +43,7 @@ function setup(initial = '{}', failingStorage = false) {
       return {ok: true, json: async () => data};
     }};
   vm.createContext(sandbox);
-  for(const file of ['resources','adventure','battle','rpg','play']) vm.runInContext(fs.readFileSync(`static/${file}.js`, 'utf8'), sandbox);
+  for(const file of ['resources','adventure','battle','rpg','library','play']) vm.runInContext(fs.readFileSync(`static/${file}.js`, 'utf8'), sandbox);
   return {get, holdNext: () => { let release; delayNext = new Promise(resolve => { release = resolve; }); return release; }, advance: ms => { now += ms; timer(); }, hide: () => { document.hidden = true; listeners.visibilitychange(); }, failNext: () => { failRequest = true; }, newRequests: () => newRequests, stored: () => stored, state: () => JSON.parse(stored), input: i => get('board').children[i].children[0]};
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
@@ -88,6 +88,14 @@ test('Defeat keeps stages locked and retry starts a fresh puzzle at full health 
  assert.equal(ui.state().seen.length,2); assert.equal(ui.state().view,'battle');
  await ui.get('battle-start').onclick(); assert.equal(ui.state()['first-step'].battle.hp,3);
 });
+test('Opening the map or codex pauses combat until the player resumes',async()=>{
+ const ui=setup(); await start(ui); ui.get('nav-challenge').onclick(); ui.advance(90000);
+ assert.equal(ui.state()['first-step'].battle.status,'paused'); assert.equal(ui.state()['first-step'].battle.hp,3);
+ await ui.get('enter-stage').onclick(); assert.equal(ui.state()['first-step'].battle.status,'paused');
+ ui.get('battle-pause').onclick(); ui.get('nav-library').onclick(); ui.advance(90000);
+ assert.equal(ui.state()['first-step'].battle.hp,3); assert.equal(ui.get('library').hidden,false);
+ ui.get('library-close').onclick(); assert.equal(ui.state().view,'battle'); assert.equal(ui.state()['first-step'].battle.status,'paused');
+});
 test('Retreat returns to the map with a new puzzle and prevents farming rewards',async()=>{
  const ui=setup(); await start(ui); fill(ui,0,5); await settle();
  await ui.get('battle-exit').onclick(); assert.equal(ui.state().view,'challenge'); assert.equal(ui.state()['first-step'].battle,null);
@@ -97,6 +105,15 @@ test('A failed puzzle request preserves the battle and board for retry',async()=
  const ui=setup(); await start(ui); fill(ui,0,5); await settle(); ui.failNext();
  await ui.get('battle-exit').onclick(); assert.equal(ui.state()['first-step'].battle.status,'paused'); assert.equal(ui.state()['first-step'].board[0],5);
  assert.match(ui.get('game-message').textContent,/Could not finish/);
+});
+test('Heroes stay locked in the codex until earned and selections persist',async()=>{
+ const ui=setup(); ui.get('nav-library').onclick();
+ assert.equal(ui.get('resource-cards').children[1].children[1].children.at(-1).disabled,true);
+ ui.get('library-close').onclick(); await start(ui); await win(ui); ui.get('nav-library').onclick();
+ ui.get('library-tabs').children[2].onclick();
+ const owl=ui.get('resource-cards').children[1].children[1].children.at(-1);
+ assert.equal(owl.disabled,false); owl.onclick(); assert.equal(ui.state().loadout.pet,'owl');
+ assert.equal(setup(ui.stored()).state().loadout.pet,'owl');
 });
 test('Backgrounding and reloading preserve the pause and network failures cost no health or entries',async()=>{
  const ui=setup(); await start(ui); ui.failNext(); fill(ui,0,5); await settle();
@@ -126,4 +143,58 @@ test('Clearing chapter one saves the boss victory, party rewards, and badge',asy
  ui.get('result-next').onclick(); assert.equal(ui.state().active,'frost-gate');
  ui.get('chapter-one').onclick();
  const restored=setup(ui.stored()); assert.equal(restored.get('chapter-badge').hidden,false);
+ restored.get('nav-library').onclick();
+ assert.equal(restored.get('resource-cards').children[1].children[1].children.at(-1).disabled,false);
+});
+
+test('Clearing chapter two preserves rank, selected equipment, and progress on reload',async()=>{
+ const ui=setup(); assert.equal(ui.get('chapter-two').disabled,true);
+ for(let stage=0;stage<6;stage++) {
+  await start(ui); await win(ui);
+  assert.equal(ui.state()[puzzles[stage].id].battleWon,true);
+  if(stage<5) ui.get('result-next').onclick();
+ }
+ assert.match(ui.get('completion-title').textContent,/Chapter 2 complete/);
+ assert.match(ui.get('victory-reward').textContent,/Lv\. \d+/);
+ assert.equal(ui.state()['winter-crown'].battle.bossActive,true);
+ assert.match(ui.get('chapter-badge').textContent,/Dawn Guardian/);
+ ui.get('result-next').onclick(); assert.equal(ui.state().active,'sand-frontier');
+ assert.equal(ui.get('chapter-three').disabled,false);
+ ui.get('nav-library').onclick(); ui.get('library-tabs').children[5].onclick();
+ const heart=ui.get('resource-cards').children[3].children[1].children.at(-1);
+ assert.equal(heart.disabled,false); heart.onclick(); assert.equal(ui.state().loadout.gear,'heart');
+ const restored=setup(ui.stored()); assert.equal(restored.state().loadout.gear,'heart');
+ assert.match(restored.get('party-stats').textContent,/♥ [4-6]/);
+});
+test('Only earned equipment can be worn and legacy saves start without gear',()=>{
+ const ui=setup(); assert.equal(ui.state().loadout.gear,'none');
+ ui.get('nav-library').onclick(); ui.get('library-tabs').children[5].onclick();
+ const heart=ui.get('resource-cards').children[3].children[1].children.at(-1);
+ assert.equal(heart.disabled,true); heart.onclick(); assert.equal(ui.state().loadout.gear,'none');
+});
+
+test('Nine stage clears unlock heroes, gear, and a badge without duplicating XP on reload',async()=>{
+ const ui=setup(); assert.equal(ui.get('chapter-three').disabled,true);
+ for(let stage=0;stage<9;stage++) {
+  await start(ui); await win(ui);
+  assert.equal(ui.state()[puzzles[stage].id].battleWon,true);
+  if(stage<8) ui.get('result-next').onclick();
+ }
+ assert.match(ui.get('completion-title').textContent,/Chapter 3 complete/);
+ assert.match(ui.get('chapter-badge').textContent,/Starfarer/);
+ assert.equal(ui.state().sunspire.battle.bossActive,true);
+ const xp=ui.state().experience;
+ ui.get('nav-library').onclick();
+ const heroes=ui.get('resource-cards').children;
+ assert.equal(heroes[2].children[1].children.at(-1).disabled,false);
+ const mage=heroes[3].children[1].children.at(-1);
+ assert.equal(mage.disabled,false); mage.onclick();
+ assert.equal(ui.state().loadout.hero,'astrologer');
+ ui.get('library-tabs').children[5].onclick();
+ const star=ui.get('resource-cards').children.at(-1).children[1].children.at(-1);
+ assert.equal(star.disabled,false); star.onclick();
+ const restored=setup(ui.stored());
+ assert.equal(restored.state().experience,xp);
+ assert.equal(restored.state().loadout.hero,'astrologer');
+ assert.equal(restored.state().loadout.gear,'star');
 });
