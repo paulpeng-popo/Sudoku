@@ -13,6 +13,28 @@ test('Chapter resources resolve and rewards unlock stage by stage',()=>{
  assert.equal(adventure.owns('heroes','knight',['first-step']),false);
  assert.equal(adventure.owns('heroes','knight',['first-step','cross-check']),true);
 });
+test('Campaign chapters, stages, and unlocks have unique, resolvable IDs', () => {
+  const {chapters, stages} = adventure;
+  assert.equal(new Set(chapters.map(chapter => chapter.button)).size, chapters.length);
+  assert.equal(new Set(stages.map(stage => stage.id)).size, stages.length);
+  const grants = new Set();
+  for (const chapter of chapters) {
+    assert.ok(chapter.stages.length);
+    assert.ok(['completion', 'victory'].includes(chapter.advanceOn));
+    for (const stage of chapter.stages) {
+      for (const [group, ids] of Object.entries(stage.unlocks || {})) {
+        for (const id of ids) {
+          assert.ok(resources[group].some(item => item.id === id));
+          const key = group + '/' + id;
+          assert.ok(!grants.has(key), key);
+          grants.add(key);
+          assert.equal(adventure.owns(group, id, []), false);
+          assert.equal(adventure.owns(group, id, [stage.id]), true);
+        }
+      }
+    }
+  }
+});
 test('The boss appears with six cells left, enrages at half health, and victory requires solving the board',()=>{
  const b=new Battle({remaining:13,stageId:'first-challenge',loadout:{hero:'warden',pet:'fox',map:'ruins'}});
  for(let i=0;i<7;i++) assert.notEqual(b.correct(i),'won');

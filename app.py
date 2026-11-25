@@ -4,7 +4,9 @@ import time
 from flask import Flask, jsonify, render_template, request
 
 from campaign import (
+    CHAPTERS,
     PUZZLES,
+    PUZZLE_BY_ID,
     GenerationError,
     analyze_puzzle,
     generate_puzzle,
@@ -111,12 +113,13 @@ def play():
         "play.html",
         puzzles=[{**p, **new_challenge(p["id"])} for p in PUZZLES],
         legacy_puzzles=PUZZLES,
+        chapters=CHAPTERS,
     )
 
 
 @app.post("/api/play/<puzzle_id>/<action>")
 def play_action(puzzle_id, action):
-    puzzle = next((p for p in PUZZLES if p["id"] == puzzle_id), None)
+    puzzle = PUZZLE_BY_ID.get(puzzle_id)
     if puzzle is None or action not in (
         "check",
         "hint",

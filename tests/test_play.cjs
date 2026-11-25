@@ -21,6 +21,7 @@ class Element {
 function setup(initial = '{}', failingStorage = false) {
   const ids = {};
   const get = id => ids[id] ||= new Element();
+  get('campaign-data').textContent = JSON.stringify(require('../campaign.json'));
   get('puzzle-data').textContent = JSON.stringify(puzzles);
   if (initial === '{}') initial = JSON.stringify({view: 'challenge'});
   let stored = initial, newRequests = 0, now = 0, timer, failRequest = false, delayNext = null;

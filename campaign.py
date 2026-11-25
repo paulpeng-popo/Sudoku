@@ -1,6 +1,9 @@
 """Tutorial stages, random puzzles with unique solutions, and step-by-step hints."""
 
+import json
 import random
+from pathlib import Path
+from typing import NamedTuple
 
 SOLUTION = (
     "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
@@ -14,39 +17,53 @@ def masked(indices):
     return "".join("0" if i in indices else v for i, v in enumerate(SOLUTION))
 
 
-PUZZLES = [
-    {
-        "id": "first-step",
-        "title": "Find the Missing Digit",
-        "difficulty": "Beginner",
-        "goal": "Find the missing digit in a row, column, or box with one empty cell.",
-        "puzzle": masked(range(0, 81, 10)),
-    },
-    {
-        "id": "cross-check",
-        "title": "Cross-check the Clues",
-        "difficulty": "Easy",
-        "goal": "Use the row, column, and box to rule out possible digits.",
-        "puzzle": masked([i for i, c in enumerate(BASE) if c == "0"][:30]),
-    },
-    {
-        "id": "first-challenge",
-        "title": "Find the Only Spot",
-        "difficulty": "Intermediate",
-        "goal": "When each cell has several candidates, look for a digit that fits in only one place.",
-        "puzzle": BASE,
-    },
-]
-# Later chapters reuse these logic difficulties. Combat settings live in adventure.js.
-for stage_id, title in (
-    ("frost-gate", "Frostgate Trial"),
-    ("crystal-path", "Crystal Passage"),
-    ("winter-crown", "Winter Throne"),
-    ("sand-frontier", "Dune Frontier"),
-    ("star-temple", "Astral Temple"),
-    ("sunspire", "Sunspire"),
-):
-    PUZZLES.append({**PUZZLES[2], "id": stage_id, "title": title})
+TECHNIQUES = ("Last empty cell", "Naked single", "Hidden single")
+DIFFICULTIES = ("Beginner", "Easy", "Intermediate")
+
+
+class PuzzleSettings(NamedTuple):
+    target_blanks: int
+    legacy_board: str
+    goal: str
+
+
+PUZZLE_SETTINGS = {
+    "Beginner": PuzzleSettings(
+        9, masked(range(0, 81, 10)),
+        "Find the missing digit in a row, column, or box with one empty cell.",
+    ),
+    "Easy": PuzzleSettings(
+        30, masked([i for i, digit in enumerate(BASE) if digit == "0"][:30]),
+        "Use the row, column, and box to rule out possible digits.",
+    ),
+    "Intermediate": PuzzleSettings(
+        45, BASE,
+        "When each cell has several candidates, look for a digit that fits in only one place.",
+    ),
+}
+
+CHAPTERS = json.loads(Path(__file__).with_name("campaign.json").read_text(encoding="utf-8"))
+
+
+def build_puzzles(chapters):
+    puzzles = []
+    for chapter in chapters:
+        for stage in chapter["stages"]:
+            difficulty = stage["difficulty"]
+            settings = PUZZLE_SETTINGS[difficulty]
+            puzzles.append({
+                "id": stage["id"],
+                "title": stage.get("puzzleTitle", stage["name"]),
+                "difficulty": difficulty,
+                "goal": settings.goal,
+                "puzzle": settings.legacy_board,
+            })
+    return puzzles
+
+
+PUZZLES = build_puzzles(CHAPTERS)
+PUZZLE_BY_ID = {p["id"]: p for p in PUZZLES}
+LEVEL_RANK = {p["id"]: DIFFICULTIES.index(p["difficulty"]) for p in PUZZLES}
 
 UNITS = (
     [[r * 9 + c for c in range(9)] for r in range(9)]
@@ -127,7 +144,7 @@ def next_hint(board):
 
 def generate_candidate(level_id, rng):
     """Shuffle a solved board and remove only clues that the hint logic can recover."""
-    target = {"first-step": 9, "cross-check": 30}.get(level_id, 45)
+    target = PUZZLE_SETTINGS[PUZZLE_BY_ID[level_id]["difficulty"]].target_blanks
     digits = rng.sample(range(1, 10), 9)
     rows = [
         band * 3 + row
@@ -155,13 +172,6 @@ def generate_candidate(level_id, rng):
             if removed >= target and profile["rank"] == target_rank:
                 return "".join(map(str, board))
     return None
-
-
-TECHNIQUES = ("Last empty cell", "Naked single", "Hidden single")
-DIFFICULTIES = ("Beginner", "Easy", "Intermediate")
-LEVEL_RANK = {
-    p["id"]: {"first-step": 0, "cross-check": 1}.get(p["id"], 2) for p in PUZZLES
-}
 
 
 def analyze_puzzle(board):
