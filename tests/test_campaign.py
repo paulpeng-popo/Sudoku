@@ -1,10 +1,13 @@
 import random
 import unittest
+from unittest.mock import patch
 
+from app import app
 from campaign import (
     LEVEL_RANK,
     PUZZLES,
     UNITS,
+    GenerationError,
     analyze_puzzle,
     generate_puzzle,
     next_hint,
@@ -13,7 +16,32 @@ from sudoku import SudokuSolver, SudokuState
 
 
 class CampaignTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
 
+
+    def test_generated_chapter_can_be_completed_via_strikes(self):
+        for level in PUZZLES:
+            with self.subTest(level=level["id"]):
+                base = "/api/play/" + level["id"] + "/"
+                generated = self.client.post(base + "new").get_json()
+                puzzle = generated["puzzle"]
+                board = list(map(int, puzzle))
+                solver = SudokuSolver()
+                solver.load_board(board)
+                self.assertEqual(solver.solve(), SudokuState.SOLVED)
+                answer = solver.get_solved_board()
+                blanks = [i for i, value in enumerate(board) if not value]
+                for turn, index in enumerate(blanks):
+                    board[index] = answer[index]
+                    result = self.client.post(
+                        base + "strike",
+                        json={"puzzle": puzzle, "board": board, "index": index},
+                    )
+                    self.assertEqual(result.status_code, 200)
+                    data = result.get_json()
+                    self.assertTrue(data["correct"])
+                    self.assertEqual(data["complete"], turn == len(blanks) - 1)
 
     def test_catalog_unique_and_teachable(self):
         for puzzle in PUZZLES:
@@ -48,6 +76,31 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(solver.get_solved_board()[i], value)
         self.assertTrue(any(i in unit for unit in UNITS))
 
+    def test_api_contract_and_errors(self):
+        puzzle = PUZZLES[0]
+        url = "/api/play/" + puzzle["id"] + "/"
+        board = list(map(int, puzzle["puzzle"]))
+        result = self.client.post(url + "hint", json={"board": board}).get_json()
+        self.assertEqual(result["status"], "hint")
+        answer = self.client.post(url + "answer", json={"board": board}).get_json()[
+            "answer"
+        ]
+        self.assertEqual(
+            self.client.post(url + "check", json={"board": answer}).get_json()[
+                "status"
+            ],
+            "complete",
+        )
+        self.assertEqual(
+            self.client.post(url + "check", json={"board": board}).get_json()["status"],
+            "playing",
+        )
+        empty = board.index(0)
+        board[empty] = answer[empty] % 9 + 1
+        result = self.client.post(url + "hint", json={"board": board}).get_json()
+        self.assertEqual(result["status"], "errors")
+        self.assertIn(empty, result["errors"])
+        self.assertNotIn("hint", result)
 
     def test_generated_puzzles_are_unique_and_teachable(self):
         seen = set()
@@ -71,6 +124,43 @@ class CampaignTests(unittest.TestCase):
                     board[hint["index"]] = hint["value"]
                 self.assertEqual(board, solver.get_solved_board())
 
+    def test_generated_puzzle_api(self):
+        url = "/api/play/first-step/"
+        puzzle = self.client.post(url + "new").get_json()["puzzle"]
+        board = list(map(int, puzzle))
+        payload = {"puzzle": puzzle, "board": board}
+        self.assertEqual(
+            self.client.post(url + "hint", json=payload).get_json()["status"], "hint"
+        )
+        answer = self.client.post(url + "answer", json=payload).get_json()["answer"]
+        payload["board"] = answer
+        self.assertEqual(
+            self.client.post(url + "check", json=payload).get_json()["status"],
+            "complete",
+        )
+        given = next(i for i, v in enumerate(board) if v)
+        payload["board"] = board.copy()
+        payload["board"][given] = 0
+        self.assertEqual(self.client.post(url + "check", json=payload).status_code, 400)
+        for invalid in (None, "0" * 80, "x" * 81, "１" * 81):
+            payload = {"puzzle": invalid, "board": board}
+            self.assertEqual(
+                self.client.post(url + "hint", json=payload).status_code, 400
+            )
+
+    def test_profile_and_completion_summary(self):
+        puzzle = generate_puzzle("first-challenge", random.Random(42))
+        url = "/api/play/first-challenge/"
+        payload = {"puzzle": puzzle, "board": list(map(int, puzzle))}
+        profile = self.client.post(url + "profile", json=payload).get_json()["profile"]
+        self.assertEqual(profile["difficulty"], "Intermediate")
+        self.assertGreater(profile["techniques"]["Hidden single"], 0)
+        answer = self.client.post(url + "answer", json=payload).get_json()["answer"]
+        result = self.client.post(
+            url + "check", json={**payload, "board": answer}
+        ).get_json()
+        self.assertEqual(result["profile"], profile)
+        self.assertEqual(sum(profile["techniques"].values()), puzzle.count("0"))
 
     def test_grade_not_based_on_empty_count(self):
         easy = analyze_puzzle(PUZZLES[0]["puzzle"])
@@ -78,6 +168,55 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(easy["difficulty"], "Beginner")
         self.assertFalse(analyze_puzzle("0" * 81)["solved"])
         self.assertIsNone(analyze_puzzle("0" * 81)["rank"])
+
+    def test_generator_failure_is_recoverable(self):
+        with patch("app.generate_puzzle", side_effect=GenerationError()):
+            response = self.client.post("/api/play/first-step/new")
+            self.assertEqual(response.status_code, 503)
+            self.assertIn("try again", response.get_json()["message"])
+
+    def test_battle_strike_validates_only_submitted_cell(self):
+        puzzle = PUZZLES[0]["puzzle"]
+        board = list(map(int, puzzle))
+        url = "/api/play/first-step/strike"
+        board[0] = 5
+        payload = {"puzzle": puzzle, "board": board, "index": 0}
+        result = self.client.post(url, json=payload).get_json()
+        self.assertTrue(result["correct"])
+        self.assertFalse(result["complete"])
+        self.assertNotIn("answer", result)
+        board[0] = 1
+        self.assertFalse(self.client.post(url, json=payload).get_json()["correct"])
+        for index in (True, -1, 81, "0", 1, 10):
+            self.assertEqual(
+                self.client.post(url, json={**payload, "index": index}).status_code, 400
+            )
+        solver = SudokuSolver()
+        solver.load_board(list(map(int, puzzle)))
+        solver.solve()
+        payload["board"] = solver.get_solved_board()
+        result = self.client.post(url, json=payload).get_json()
+        self.assertTrue(result["complete"])
+        self.assertIn("profile", result)
+
+    def test_bad_requests(self):
+        p = PUZZLES[0]
+        url = "/api/play/" + p["id"] + "/hint"
+        for payload in (
+            None,
+            [],
+            {},
+            {"board": [0] * 80},
+            {"board": [True] * 81},
+            {"board": [0] * 81},
+        ):
+            self.assertEqual(self.client.post(url, json=payload).status_code, 400)
+        self.assertEqual(
+            self.client.post("/api/play/missing/hint", json={}).status_code, 404
+        )
+        self.assertEqual(
+            self.client.post("/api/play/first-step/missing", json={}).status_code, 404
+        )
 
 
 if __name__ == "__main__":
