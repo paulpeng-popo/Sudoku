@@ -2,6 +2,7 @@
 
 import json
 import random
+from functools import cached_property
 from pathlib import Path
 from typing import NamedTuple
 
@@ -17,7 +18,6 @@ def masked(indices):
     return "".join("0" if i in indices else v for i, v in enumerate(SOLUTION))
 
 
-TECHNIQUES = ("Last empty cell", "Naked single", "Hidden single")
 DIFFICULTIES = ("Beginner", "Easy", "Intermediate")
 
 
@@ -86,11 +86,30 @@ def unit_label(n):
     )
 
 
-def next_hint(board):
+PEERS = [
+    {cell for unit in UNITS if index in unit for cell in unit if cell != index}
+    for index in range(81)
+]
+
+
+class HintBoard:
+    def __init__(self, values):
+        self.values = values
+
+    @cached_property
+    def candidates(self):
+        return {
+            index: set(range(1, 10)) - {self.values[peer] for peer in PEERS[index]}
+            for index, value in enumerate(self.values) if not value
+        }
+
+
+def last_empty_cell(board):
+    values = board.values
     for n, unit in enumerate(UNITS):
-        empty = [i for i in unit if board[i] == 0]
+        empty = [i for i in unit if values[i] == 0]
         if len(empty) == 1:
-            options = set(range(1, 10)) - {board[i] for i in unit}
+            options = set(range(1, 10)) - {values[i] for i in unit}
             if len(options) != 1:
                 continue
             i, value = empty[0], options.pop()
@@ -98,31 +117,31 @@ def next_hint(board):
             return {
                 "index": i,
                 "value": value,
-                "technique": "Last empty cell",
                 "stages": [
                     f"Look at {label}. Only one cell is empty.",
                     f"Which digit from 1 to 9 is missing from {label}?",
                     f"Only {value} is missing from {label}. Put {value} in row {i // 9 + 1}, column {i % 9 + 1}.",
                 ],
             }
-    candidates = {}
-    for i, value in enumerate(board):
-        if not value:
-            peers = {j for unit in UNITS if i in unit for j in unit} - {i}
-            candidates[i] = set(range(1, 10)) - {board[j] for j in peers}
-    for i, options in candidates.items():
+
+
+def naked_single(board):
+    for i, options in board.candidates.items():
         if len(options) == 1:
             value = next(iter(options))
             return {
                 "index": i,
                 "value": value,
-                "technique": "Naked single",
                 "stages": [
                     f"Look at the empty cell in row {i // 9 + 1}, column {i % 9 + 1}.",
                     "Rule out the digits already in its row, column, and box. Only one candidate remains.",
                     f"Its row, column, and box already contain {', '.join(str(v) for v in range(1, 10) if v != value)}. Only {value} fits here.",
                 ],
             }
+
+
+def hidden_single(board):
+    candidates = board.candidates
     for n, unit in enumerate(UNITS):
         label = unit_label(n)
         for value in range(1, 10):
@@ -132,13 +151,29 @@ def next_hint(board):
                 return {
                     "index": i,
                     "value": value,
-                    "technique": "Hidden single",
                     "stages": [
                         f"Look for a place for {value} in {label}.",
                         f"Skip filled cells and empty cells whose row, column, or box already contains {value}.",
                         f"In {label}, {value} can only go in row {i // 9 + 1}, column {i % 9 + 1}.",
                     ],
                 }
+    return None
+
+
+# Insertion order is hint priority. Multiple techniques may share a difficulty.
+TECHNIQUES = {
+    "Last empty cell": ("Beginner", last_empty_cell),
+    "Naked single": ("Easy", naked_single),
+    "Hidden single": ("Intermediate", hidden_single),
+}
+
+
+def next_hint(board):
+    context = HintBoard(board)
+    for name, (_, find_hint) in TECHNIQUES.items():
+        hint = find_hint(context)
+        if hint is not None:
+            return {**hint, "technique": name}
     return None
 
 
@@ -189,12 +224,13 @@ def analyze_puzzle(board):
             }
         counts[hint["technique"]] += 1
         probe[hint["index"]] = hint["value"]
-    rank = max((i for i, name in enumerate(TECHNIQUES) if counts[name]), default=0)
+    used = {name: count for name, count in counts.items() if count}
+    rank = max((DIFFICULTIES.index(TECHNIQUES[name][0]) for name in used), default=0)
     return {
         "solved": True,
         "rank": rank,
         "difficulty": DIFFICULTIES[rank],
-        "techniques": {name: count for name, count in counts.items() if count},
+        "techniques": used,
     }
 
 

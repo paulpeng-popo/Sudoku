@@ -13,6 +13,7 @@
   const puzzles = adventure.stages.map(stage => puzzleById.get(stage.id));
   const indexById = new Map(puzzles.map((puzzle, index) => [puzzle.id, index]));
   const chapterForLevel = adventure.chapters.flatMap(chapter => chapter.stages.map(() => chapter));
+  const techniqueOrder = JSON.parse($('technique-order').textContent);
   const legacyPuzzles = JSON.parse($('legacy-puzzles').textContent || '[]');
   let experience = Number.isSafeInteger(saved.experience) && saved.experience >= 0 ? Math.min(saved.experience, 1000000) : 0;
   let soundOn = saved.soundOn === true, audioContext;
@@ -142,8 +143,9 @@
   }
   function renderProfile() {
     const s = current(), profile = s.profile;
-    const order = ['Last empty cell', 'Naked single', 'Hidden single'];
-    const techniques = profile?.techniques && typeof profile.techniques === 'object' ? Object.entries(profile.techniques).filter(([name, count]) => ['Last empty cell', 'Naked single', 'Hidden single'].includes(name) && Number.isInteger(count) && count > 0).sort(([a], [b]) => order.indexOf(a) - order.indexOf(b)) : [];
+    const techniques = techniqueOrder
+      .map(name => [name, profile?.techniques?.[name]])
+      .filter(([, count]) => Number.isInteger(count) && count > 0);
     $('skill-summary').textContent = profile ? `Puzzle: ${profile.difficulty} · ${techniques.map(([name]) => name).join(', ') || 'No empty cells'}${profile.difficulty !== puzzles[level].difficulty ? ' (saved puzzle; start a new puzzle for the current difficulty)' : ''}` : 'Analyzing puzzle techniques…';
     $('completion-panel').hidden = !s.done;
     if (s.done) {

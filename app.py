@@ -5,8 +5,9 @@ from flask import Flask, jsonify, render_template, request
 
 from campaign import (
     CHAPTERS,
-    PUZZLES,
     PUZZLE_BY_ID,
+    PUZZLES,
+    TECHNIQUES,
     GenerationError,
     analyze_puzzle,
     generate_puzzle,
@@ -114,6 +115,7 @@ def play():
         puzzles=[{**p, **new_challenge(p["id"])} for p in PUZZLES],
         legacy_puzzles=PUZZLES,
         chapters=CHAPTERS,
+        techniques=list(TECHNIQUES),
     )
 
 

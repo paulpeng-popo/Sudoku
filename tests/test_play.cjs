@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {execFileSync} = require('node:child_process');
 const {test} = require('node:test');
-const puzzles = JSON.parse(execFileSync('.venv/bin/python', ['-c', 'import json; from campaign import PUZZLES, analyze_puzzle; print(json.dumps([{**p, "profile": analyze_puzzle(p["puzzle"])} for p in PUZZLES]))'], {encoding: 'utf8'}));
+const {puzzles, techniques} = JSON.parse(execFileSync('.venv/bin/python', ['-c', 'import json; from campaign import PUZZLES, TECHNIQUES, analyze_puzzle; print(json.dumps({"puzzles": [{**p, "profile": analyze_puzzle(p["puzzle"])} for p in PUZZLES], "techniques": list(TECHNIQUES)}))'], {encoding: 'utf8'}));
 const answer = [...'534678912672195348198342567859761423426853791713924856961537284287419635345286179'].map(Number);
 class Element {
   constructor() {
@@ -21,6 +21,7 @@ class Element {
 function setup(initial = '{}', failingStorage = false, chapters = require('../campaign.json')) {
   const ids = {};
   const get = id => ids[id] ||= new Element();
+  get('technique-order').textContent = JSON.stringify(techniques);
   get('campaign-data').textContent = JSON.stringify(chapters);
   get('puzzle-data').textContent = JSON.stringify(puzzles);
   if (initial === '{}') initial = JSON.stringify({view: 'challenge'});

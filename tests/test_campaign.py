@@ -6,6 +6,7 @@ from app import app
 from campaign import (
     LEVEL_RANK,
     PUZZLES,
+    TECHNIQUES,
     UNITS,
     GenerationError,
     analyze_puzzle,
@@ -75,6 +76,17 @@ class CampaignTests(unittest.TestCase):
                     board[hint["index"]] = hint["value"]
                 self.assertEqual(board, answer)
                 self.assertIsNone(next_hint(board))
+
+    def test_additional_hint_can_share_a_difficulty(self):
+        # The priority of a strategy must not determine its difficulty.
+        strategies = {
+            "First strategy": ("Beginner", lambda board: None),
+            "Alternate single": TECHNIQUES["Last empty cell"],
+        }
+        with patch.dict(TECHNIQUES, strategies, clear=True):
+            profile = analyze_puzzle(PUZZLES[0]["puzzle"])
+        self.assertEqual(profile["difficulty"], "Beginner")
+        self.assertEqual(profile["techniques"], {"Alternate single": 9})
 
     def test_hidden_single(self):
         board = list(
