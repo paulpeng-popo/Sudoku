@@ -1,0 +1,129 @@
+// Use a minimal DOM to test game state. Check layout separately in a real browser.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const {execFileSync} = require('node:child_process');
+const {test} = require('node:test');
+const puzzles = JSON.parse(execFileSync('.venv/bin/python', ['-c', 'import json; from campaign import PUZZLES, analyze_puzzle; print(json.dumps([{**p, "profile": analyze_puzzle(p["puzzle"])} for p in PUZZLES]))'], {encoding: 'utf8'}));
+const answer = [...'534678912672195348198342567859761423426853791713924856961537284287419635345286179'].map(Number);
+class Element {
+  constructor() {
+    this.children = []; this.attrs = {}; this.hidden = false; this.style = {};
+    const classes = new Set();
+    this.classList = {add: c => classes.add(c), remove: c => classes.delete(c), toggle: (c, yes) => yes ? classes.add(c) : classes.delete(c)};
+  }
+  append(...children) { for (const child of children) { if (typeof child === 'object') { child.parentElement = this; const prev = this.children.at(-1); if (prev && typeof prev === 'object') prev.nextElementSibling = child; } this.children.push(child); } }
+  replaceChildren(...children) { this.children = []; this.append(...children); }
+  setAttribute(k, v) { this.attrs[k] = v; }
+  select() {}
+  focus() { this.onfocus?.(); }
+}
+function setup(initial = '{}', failingStorage = false) {
+  const ids = {};
+  const get = id => ids[id] ||= new Element();
+  get('puzzle-data').textContent = JSON.stringify(puzzles);
+  if (initial === '{}') initial = JSON.stringify({view: 'challenge'});
+  let stored = initial, newRequests = 0, now = 0, timer, failRequest = false, delayNext = null;
+  const listeners = {};
+  const document = {getElementById: get, createElement: () => new Element(), querySelectorAll: () => get('keypad').children, addEventListener: (name, fn) => { listeners[name] = fn; }};
+  const sandbox = { performance: {now: () => now}, setInterval: fn => { timer = fn; }, document, window: {confirm: () => true, addEventListener() {}}, localStorage: {getItem: () => stored, setItem: (_, value) => { if (failingStorage) throw new Error('storage blocked'); stored = value; }}, AbortController, setTimeout, clearTimeout,
+    fetch: async (url, options) => {
+      if (delayNext) { const delay = delayNext; delayNext = null; await delay; }
+      if (failRequest) { failRequest = false; throw new Error('offline'); }
+      const {board, index} = JSON.parse(options.body), action = url.split('/').at(-1);
+      let data;
+      if (action === 'strike') data = {correct: board[index] === answer[index], complete: board.every((v, i) => v === answer[i]), profile: puzzles[0].profile};
+      else if (action === 'profile') data = {profile: puzzles[0].profile};
+      else if (action === 'new') { newRequests++; data = {profile: puzzles[0].profile, puzzle: newRequests === 1 ? puzzles[0].puzzle : '50' + puzzles[0].puzzle.slice(2)}; }
+      else if (action === 'answer') data = {answer};
+      else if (board.every((v, i) => v === answer[i])) data = {status: 'complete', profile: puzzles[0].profile};
+      else if (board.some((v, i) => v && v !== answer[i])) data = {status: 'errors', errors: board.flatMap((v, i) => v && v !== answer[i] ? [i] : []), message: 'Incorrect entry'};
+      else if (action === 'hint') { const i = board.indexOf(0); data = {status: 'hint', hint: {index: i, value: answer[i], technique: 'Naked single', stages: ['Where to look', 'Reasoning', 'Answer']}}; }
+      else data = {status: 'playing', message: 'Keep going'};
+      return {ok: true, json: async () => data};
+    }};
+  vm.createContext(sandbox);
+  for(const file of ['resources','adventure','battle','rpg','play']) vm.runInContext(fs.readFileSync(`static/${file}.js`, 'utf8'), sandbox);
+  return {get, holdNext: () => { let release; delayNext = new Promise(resolve => { release = resolve; }); return release; }, advance: ms => { now += ms; timer(); }, hide: () => { document.hidden = true; listeners.visibilitychange(); }, failNext: () => { failRequest = true; }, newRequests: () => newRequests, stored: () => stored, state: () => JSON.parse(stored), input: i => get('board').children[i].children[0]};
+}
+const settle = () => new Promise(resolve => setImmediate(resolve));
+function fill(ui, i, n) { ui.input(i).focus(); ui.input(i).onkeydown({key: String(n), preventDefault() {}}); }
+async function start(ui) { await ui.get('enter-stage').onclick(); await ui.get('battle-start').onclick(); }
+async function win(ui) { for(let i=0;i<81;i++) if(!ui.state()[ui.state().active].board[i]) { fill(ui,i,answer[i]); await settle(); } }
+test('The game opens on the map and blocks entries before battle', async () => {
+ const ui=setup(); assert.equal(ui.state().view,'challenge'); assert.equal(ui.get('preparation').hidden,false);
+ fill(ui,0,5); assert.equal(ui.state()['first-step'].board[0],0);
+ assert.equal(ui.get('levels').children[1].disabled,true);
+ await ui.get('enter-stage').onclick(); assert.equal(ui.state().view,'battle');
+ fill(ui,0,5); assert.equal(ui.state()['first-step'].board[0],0);
+ await ui.get('battle-start').onclick(); fill(ui,0,5); await settle();
+ assert.equal(ui.state()['first-step'].board[0],5);
+});
+test('Correct entries deal damage once, mistakes trigger charges, and pausing stops combat',async()=>{
+ const ui=setup(); await start(ui); fill(ui,0,5); await settle();
+ assert.equal(ui.state()['first-step'].battle.enemyHP,21);
+ fill(ui,0,5); await settle(); assert.equal(ui.state()['first-step'].battle.enemyHP,21);
+ fill(ui,10,1); await settle(); assert.equal(ui.state()['first-step'].battle.distance,40);
+ ui.get('battle-pause').onclick(); ui.advance(100000); assert.equal(ui.state()['first-step'].battle.hp,3);
+ ui.get('battle-pause').onclick(); ui.advance(33000); assert.equal(ui.state()['first-step'].battle.distance,60);
+});
+test('Notes persist without attacking and normal entries resume attacks',async()=>{
+ const ui=setup(); await start(ui); ui.get('notes').onclick(); fill(ui,0,5);
+ assert.deepEqual(ui.state()['first-step'].notes[0],[5]); assert.equal(ui.state()['first-step'].battle.enemyHP,30);
+ ui.get('notes').onclick(); fill(ui,0,5); await settle(); assert.equal(ui.state()['first-step'].battle.enemyHP,21);
+});
+test('Victory unlocks the next stage and companion without duplicating rewards on reload',async()=>{
+ const ui=setup(); await start(ui); await win(ui);
+ assert.equal(ui.state()['first-step'].battleWon,true); assert.equal(ui.get('levels').children[1].disabled,false);
+ assert.match(ui.get('victory-reward').textContent,/Moonfeather Owl/);
+ const xp=ui.state().experience; assert.ok(xp>0);
+ const restored=setup(ui.stored()); assert.equal(restored.state().experience,xp); assert.equal(restored.state()['first-step'].battleWon,true);
+ restored.get('result-next').onclick(); assert.equal(restored.state().active,'cross-check'); assert.equal(restored.state().view,'challenge');
+});
+test('Defeat keeps stages locked and retry starts a fresh puzzle at full health with history intact',async()=>{
+ const ui=setup(); await start(ui); ui.advance(500000);
+ assert.equal(ui.state()['first-step'].battle.status,'lost'); assert.equal(ui.get('battle-retry').hidden,false);
+ assert.equal(ui.get('levels').children[1].disabled,true);
+ await ui.get('battle-retry').onclick(); assert.equal(ui.newRequests(),2); assert.equal(ui.state()['first-step'].battle,null);
+ assert.equal(ui.state().seen.length,2); assert.equal(ui.state().view,'battle');
+ await ui.get('battle-start').onclick(); assert.equal(ui.state()['first-step'].battle.hp,3);
+});
+test('Retreat returns to the map with a new puzzle and prevents farming rewards',async()=>{
+ const ui=setup(); await start(ui); fill(ui,0,5); await settle();
+ await ui.get('battle-exit').onclick(); assert.equal(ui.state().view,'challenge'); assert.equal(ui.state()['first-step'].battle,null);
+ assert.equal(ui.state()['first-step'].battleWon,false); assert.equal(ui.newRequests(),2);
+});
+test('A failed puzzle request preserves the battle and board for retry',async()=>{
+ const ui=setup(); await start(ui); fill(ui,0,5); await settle(); ui.failNext();
+ await ui.get('battle-exit').onclick(); assert.equal(ui.state()['first-step'].battle.status,'paused'); assert.equal(ui.state()['first-step'].board[0],5);
+ assert.match(ui.get('game-message').textContent,/Could not finish/);
+});
+test('Backgrounding and reloading preserve the pause and network failures cost no health or entries',async()=>{
+ const ui=setup(); await start(ui); ui.failNext(); fill(ui,0,5); await settle();
+ assert.equal(ui.state()['first-step'].board[0],0); assert.equal(ui.state()['first-step'].battle.hp,3);
+ ui.hide(); assert.equal(ui.state()['first-step'].battle.status,'paused');
+ const restored=setup(ui.stored()); assert.equal(restored.state()['first-step'].battle.status,'paused');
+});
+test('An attack response arriving while paused resolves only once',async()=>{
+ const ui=setup(); await start(ui); const release=ui.holdNext(); fill(ui,0,5); ui.hide();
+ assert.equal(ui.state()['first-step'].board[0],0); release(); await settle();
+ assert.equal(ui.state()['first-step'].board[0],5); assert.equal(ui.state()['first-step'].battle.enemyHP,21); assert.equal(ui.state()['first-step'].battle.status,'paused');
+});
+test('The game still opens with corrupt or unavailable storage',()=>{
+ const ui=setup('invalid JSON',true); assert.match(ui.get('save-note').textContent,/Unable to save/); assert.equal(ui.input(0).value,'');
+});
+
+test('Clearing chapter one saves the boss victory, party rewards, and badge',async()=>{
+ const ui=setup();
+ for(let stage=0;stage<3;stage++) {
+  await start(ui); await win(ui);
+  assert.equal(ui.state()[puzzles[stage].id].battleWon,true);
+  if(stage<2) ui.get('result-next').onclick();
+ }
+ assert.match(ui.get('completion-title').textContent,/Chapter 1 complete/);
+ assert.equal(ui.state()['first-challenge'].battle.bossActive,true);
+ assert.equal(ui.get('chapter-badge').hidden,false);
+ ui.get('result-next').onclick(); assert.equal(ui.state().active,'frost-gate');
+ ui.get('chapter-one').onclick();
+ const restored=setup(ui.stored()); assert.equal(restored.get('chapter-badge').hidden,false);
+});

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101d28">
+  <title>Sudoku Guardians</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='play.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='battle.css') }}">
+</head>
+<body>
+<div id="app-shell" class="app-shell mode-battle">
+  {% include 'navigation.html' %}
+  <header class="topbar"><div class="game-brand"><h1>Sudoku Guardians</h1><span id="view-label">Game</span></div><div class="header-actions"><button id="sound-toggle" aria-pressed="false" title="Toggle sound">Sound off</button><button id="nav-challenge">Stage map</button><span id="world-name" class="sr-only">Moonshadow Forest</span></div></header>
+  <main id="play-space" class="play-space">
+    <section id="stage-zone" class="stage-zone" aria-label="Adventure area">
+      <section id="challenge-view" class="chapter" aria-label="Adventure map">
+        <div class="chapter-switch"><button id="chapter-one">Chapter 1</button><button id="chapter-two">Chapter 2</button><button id="chapter-three">Chapter 3</button></div><div class="map-heading"><div><span id="chapter-label" class="eyebrow">Chapter 1</span><h2 id="chapter-title">Moonshadow Forest</h2></div><div class="map-progress"><span id="progress"></span><progress id="progress-bar" max="3" value="0" aria-label="Stage completion"></progress></div></div>
+        <div class="level-map"><svg class="map-path" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M140 440C520 470 520 260 300 290S50 100 430 110"/></svg><nav id="levels" aria-label="Choose a stage"></nav></div>
+      </section>
+      <section id="battle-view" class="battle-card" aria-label="Battle scene">
+        <div id="battle-content">
+          <div class="battle-hud"><div class="hero-hud"><span id="hero-name" class="hud-caption">Guardian</span><span id="battle-hearts" aria-label="Player health">♥♥♥</span><span id="battle-rpg" class="rpg-caption"></span></div><div class="enemy-hud"><span id="monster-name" class="hud-caption">Bramble Beast</span><span id="battle-enemy-hp">HP 3</span></div></div>
+          <div id="battle-arena" class="battle-arena" aria-label="Forest battlefield">
+            <div class="arena-caption" aria-hidden="true"><span>Sudoku Guardians</span><h2 id="arena-name">Moonshadow Forest</h2></div>
+            <span class="firefly firefly-one" aria-hidden="true"></span><span class="firefly firefly-two" aria-hidden="true"></span>
+            <div id="battle-hero" class="battle-hero" aria-hidden="true"><img id="hero-art" src="{{ url_for('static', filename='art/anime/warden.png') }}" alt=""></div>
+            <div id="battle-monster" class="battle-monster" aria-hidden="true"><img id="monster-art" src="{{ url_for('static', filename='art/anime/bramble.png') }}" alt=""></div>
+            <img id="pet-art" class="battle-pet" src="/static/art/anime/fox.png" alt="Ember Fox">
+            <span id="battle-combo" class="battle-combo"></span><span id="damage-number" class="damage-number" aria-hidden="true"></span>
+            <span id="battle-bolt" class="battle-bolt" aria-hidden="true">✦</span>
+            <div id="battle-overlay" class="battle-overlay" hidden></div>
+          </div>
+          <div class="battle-bottom"><div class="battle-clock"><span id="battle-clock-label">20s</span><progress id="battle-timer" max="20" value="20" aria-label="Time until the monster advances"></progress></div><p id="battle-status" role="status" aria-live="polite"></p><div class="battle-buttons"><button id="battle-start" class="start-button">Start battle <span aria-hidden="true">↗</span></button><button id="hero-skill" title="Solve 3 cells to charge. Your next hit deals ×1.8 damage and you gain one shield." hidden></button><button id="pet-skill" hidden></button><button id="battle-pause" hidden>Pause</button><button id="battle-exit" hidden>Retreat</button><button id="battle-retry" hidden>Retry</button></div></div>
+        </div>
+      </section>
+    </section>
+    <section id="preparation" class="preparation">
+      <span id="prep-chapter" class="eyebrow">Chapter 1 · Battle prep</span><h2 id="stage-title"></h2><p id="stage-intro"></p>
+      <div class="party-preview"><img id="prep-hero" alt="Selected hero"><img id="prep-pet" alt="Selected companion"></div>
+      <p id="party-name"></p><p id="party-stats"></p><p id="party-growth"></p>
+      <div class="stage-reward"><span>First clear reward</span><strong id="stage-reward"></strong></div>
+      <button id="enter-stage" class="start-button">Enter battle →</button>
+      <p id="chapter-badge" hidden>✧ Moonshadow Guardian · Chapter 1 complete</p>
+    </section>
+    <section id="game-panel" class="game" aria-label="Sudoku controls">
+      <div class="game-heading"><div><span id="difficulty" class="badge"></span><h2 id="level-title"></h2></div><span id="level-number"></span></div>
+      <div class="board-slot">
+        <div id="board" class="game-board" role="group" aria-label="Playable Sudoku board"></div>
+        <div id="game-message" role="status" aria-live="polite" class="feedback"></div>
+        <div id="board-cover" class="board-cover"><span class="cover-rune" aria-hidden="true">✦</span><strong>Ready for battle</strong></div>
+        <section id="answer-panel" hidden><div id="answer-board" class="answer-grid" aria-label="Full solution"></div></section>
+        <section id="completion-panel" class="completion-panel" hidden aria-live="polite"><span class="victory-rune" aria-hidden="true">✧</span><strong id="completion-title"></strong><p id="completion-skills" class="sr-only"></p><p id="victory-reward"></p><button id="result-next">Continue adventure →</button></section>
+      </div>
+      <div id="keypad" class="keypad" aria-label="Number pad"></div>
+      <div class="game-actions"><button id="notes" aria-pressed="false" title="Toggle candidate notes">Notes</button><button id="erase">Erase</button><button id="undo">Undo</button><button id="check" title="Checking your entries counts as using a hint">Check</button></div>
+      <div class="help-panel"><button id="hint">Hint</button><p id="hint-text" aria-live="polite"></p><button id="apply-hint" hidden>Fill cell</button></div>
+      <div class="bottom-actions"><button id="restart">New puzzle <span aria-hidden="true">↻</span></button><button id="answer">Solution</button><button id="next" class="primary-btn" hidden>Next stage →</button></div>
+      <p id="level-goal" class="sr-only"></p><p id="skill-summary" class="sr-only"></p><p id="save-note" class="sr-only">Progress is saved in this browser.</p>
+    </section>
+  </main>
+</div>
+<noscript>Enable JavaScript to play, or use the <a href="/">Sudoku solver</a>.</noscript>
+<script id="legacy-puzzles" type="application/json">{{ legacy_puzzles | tojson }}</script>
+<script id="puzzle-data" type="application/json">{{ puzzles | tojson }}</script>
+<script src="{{ url_for('static', filename='resources.js') }}" defer></script>
+<script src="{{ url_for('static', filename='adventure.js') }}" defer></script>
+<script src="{{ url_for('static', filename='battle.js') }}" defer></script>
+<script src="{{ url_for('static', filename='rpg.js') }}" defer></script>
+<script src="{{ url_for('static', filename='play.js') }}" defer></script>
+</body></html>

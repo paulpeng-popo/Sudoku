@@ -105,6 +105,15 @@ def generation_unavailable(error):
     return jsonify(message="Could not generate a puzzle at this difficulty. Please try again."), 503
 
 
+@app.get("/play")
+def play():
+    return render_template(
+        "play.html",
+        puzzles=[{**p, **new_challenge(p["id"])} for p in PUZZLES],
+        legacy_puzzles=PUZZLES,
+    )
+
+
 @app.post("/api/play/<puzzle_id>/<action>")
 def play_action(puzzle_id, action):
     puzzle = next((p for p in PUZZLES if p["id"] == puzzle_id), None)

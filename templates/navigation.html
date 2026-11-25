@@ -1,4 +1,7 @@
   <aside class="side-rail" aria-label="Mode navigation">
     <div class="brand-mark" aria-hidden="true">9</div>
+    <nav>
+      {% if solver_page %}<a href="/play?view=battle" id="nav-game" class="nav-item" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 7 4 9 13M20 3l-7 4L4 20M3 15l6 6m6-6 6 6"/></svg><span>Game</span></a>{% else %}<button id="nav-game" class="nav-item" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 7 4 9 13M20 3l-7 4L4 20M3 15l6 6m6-6 6 6"/></svg><span>Game</span></button>{% endif %}
+    </nav>
     <a href="/" class="rail-link" {% if solver_page %}aria-current="page"{% endif %} title="Sudoku solver" aria-label="Sudoku solver"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 4v16"/></svg><span>Solver</span></a>
   </aside>

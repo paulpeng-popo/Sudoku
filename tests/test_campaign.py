@@ -19,6 +19,22 @@ class CampaignTests(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
 
+    def test_page(self):
+        response = self.client.get("/play")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Sudoku Guardians", html)
+        self.assertIn('id="nav-challenge"', html)
+        self.assertIn('id="nav-game"', html)
+        self.assertNotIn("<span>Challenges</span>", html)
+        self.assertIn('id="preparation"', html)
+        for removed in (
+            "One step forward every day",
+            "Sudoku Journey",
+            "From your first digit to solving the whole board.",
+            "viewport.js",
+        ):
+            self.assertNotIn(removed, html)
 
     def test_generated_chapter_can_be_completed_via_strikes(self):
         for level in PUZZLES:
