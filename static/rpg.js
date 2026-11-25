@@ -1,6 +1,7 @@
 // Legacy battles retain their rules. New battles use versioned RPG saves.
 (function(root) {
   'use strict';
+  const companionRechargeCells = 8;
   const LegacyBattle = root.SudokuBattle;
   class RPGBattle extends LegacyBattle {
     static stats({loadout, rank = 1, seconds = 30}) {
@@ -32,15 +33,11 @@
       if(this.status !== 'active' || this.energy < 3 || this.empowered || this.bossDefeated) return false;
       this.energy = 0; this.empowered = true; this.shield = 1; return true;
     }
-    useSkill() {
-      if(this.status !== 'active' || this.petCooldown > 0 || this.bossDefeated) return false;
-      const pet = root.SudokuResources.pets.find(p => p.id === this.loadout?.pet);
-      if(pet?.skill === 'heal') {
-        if(this.hp >= this.maxHP) return false;
-        this.hp = Math.min(this.maxHP, this.hp + (this.rank >= 5 ? 2 : 1));
-      } else if(pet?.skill === 'rewind') { this.distance = 0; this.time = this.seconds; }
-      else return false;
-      this.petCooldown = 8; return true;
+    canUseSkill() {
+      return !this.bossDefeated && this.petCooldown === 0 && super.canUseSkill();
+    }
+    spendSkillCharge() {
+      this.petCooldown = companionRechargeCells;
     }
     advance(amount) {
       if(this.bossDefeated) return null;
@@ -104,7 +101,7 @@
       if(!['active','paused','won','lost'].includes(data.status) || !integer('rank',1,10) || !integer('remaining',0,81) ||
         !integer('hp',0,6) || !integer('defeated',0,81) || !integer('enemyHP',0,1000) || !integer('enemyMaxHP',1,1000) ||
         !integer('combo',0,81) || !integer('bestCombo',data.combo,81) || !integer('energy',0,3) ||
-        !integer('petCooldown',0,8) || !integer('shield',0,1) || !integer('earnedXP',0,10000) ||
+        !integer('petCooldown',0,companionRechargeCells) || !integer('shield',0,1) || !integer('earnedXP',0,10000) ||
         !integer('lastDamage',0,1000) || !integer('lastHurt',0,10) ||
         !['empowered','bossDefeated','bossActive','lastCritical'].every(k => typeof data[k] === 'boolean') ||
         (!Number.isSafeInteger(data.baseSeconds) || data.baseSeconds <= 0) || !Number.isFinite(data.time) || data.time < 0 ||

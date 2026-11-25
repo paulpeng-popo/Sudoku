@@ -330,7 +330,7 @@
       const skill = resources.skills.find(s => s.id === pet.skill);
       $('pet-skill').textContent = battle?.petCooldown > 0 ? `${skill.name} · ${battle.petCooldown} ${battle.petCooldown === 1 ? 'cell' : 'cells'}` : battle?.skillUsed ? 'Skill used' : skill.name;
       $('pet-skill').hidden = !battle;
-      $('pet-skill').disabled = busy || battle?.status !== 'active' || battle?.skillUsed || battle?.petCooldown > 0 || battle?.bossDefeated || (pet.skill === 'heal' && battle?.hp === battle?.maxHP);
+      $('pet-skill').disabled = busy || !battle?.canUseSkill();
     }
     $('hero-skill').title = `Solve 3 cells to charge. Your next hit deals ×${battle?.powerMultiplier?.() || 1.8} damage and you gain one shield.`;
     $('hero-skill').hidden = battle?.rulesVersion !== 2;

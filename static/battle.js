@@ -1,6 +1,23 @@
 // Combat rules are independent of rendering and timers.
 (function (root) {
   'use strict';
+  const companionEffects = {
+    heal: {
+      available: battle => battle.hp < battle.maxHP,
+      apply(battle) {
+        const amount = battle.rank >= 5 ? 2 : 1;
+        battle.hp = Math.min(battle.maxHP, battle.hp + amount);
+      },
+    },
+    rewind: {
+      available: () => true,
+      apply(battle) {
+        battle.distance = 0;
+        battle.time = battle.seconds;
+      },
+    },
+  };
+
   class SudokuBattle {
     constructor({remaining, seconds = 20, credited = [], loadout = null, stageId = null, rank = 1}) {
       this.stageId = stageId;
@@ -55,13 +72,22 @@
       const id = this.bossActive ? this.stage()?.boss : pool?.[this.defeated % pool.length];
       return resources?.monsters.find(m => m.id === id) || {hp:3,step:20};
     }
+    companionEffect() {
+      const pet = root.SudokuResources?.pets.find(pet => pet.id === this.loadout?.pet);
+      return companionEffects[pet?.skill];
+    }
+    canUseSkill() {
+      return this.status === 'active' && !this.skillUsed &&
+        Boolean(this.companionEffect()?.available(this));
+    }
+    spendSkillCharge() {
+      this.skillUsed = true;
+    }
     useSkill() {
-      if(this.status !== 'active' || this.skillUsed) return false;
-      const pet = root.SudokuResources?.pets.find(p => p.id === this.loadout?.pet);
-      if(pet?.skill === 'heal') { if(this.hp >= this.maxHP) return false; this.hp++; }
-      else if(pet?.skill === 'rewind') { this.distance = 0; this.time = this.seconds; }
-      else return false;
-      this.skillUsed = true; return true;
+      if (!this.canUseSkill()) return false;
+      this.companionEffect().apply(this);
+      this.spendSkillCharge();
+      return true;
     }
     pause() { if (this.status === 'active') this.status = 'paused'; }
     resume() { if (this.status === 'paused') this.status = 'active'; }
