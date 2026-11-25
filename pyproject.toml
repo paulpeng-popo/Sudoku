@@ -1,0 +1,17 @@
+[project]
+name = "sudoku-solver"
+version = "0.1.0"
+description = "A browser-based Sudoku solver built with Flask"
+requires-python = ">=3.10"
+dependencies = ["Flask==3.1.2", "waitress (>=3.0,<4.0)"]
+
+[tool.poetry]
+package-mode = false
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.17.4,<0.18.0)"
+]
